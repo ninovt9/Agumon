@@ -2,6 +2,9 @@
 #include "CppUnitTest.h"
 
 #include <map>
+#include <vector>
+#include <algorithm>
+#include <memory>
 
 using namespace Microsoft::VisualStudio::CppUnitTestFramework;
 
@@ -46,6 +49,14 @@ namespace TestAgumon
 		public:
 			inline Token getToken()
 			{
+				
+				std::vector<char> skipList{ ' ' };
+				while (std::find(skipList.begin(), skipList.end(), peekChar()) != skipList.end())
+				{
+					getChar();
+				}
+
+
 				auto firstChar = peekChar();
 
 				if (isdigit(firstChar))
@@ -54,10 +65,12 @@ namespace TestAgumon
 				}
 				else if (firstChar == '=')
 				{
+					getChar();
 					return Token(TokenType::ASSIGN);
 				}
 				else if (firstChar == ';')
 				{
+					getChar();
 					return Token(TokenType::SEMICOLON);
 				}
 				else if (isalpha(firstChar))
@@ -233,14 +246,87 @@ namespace TestAgumon
 			Assert::IsTrue(token.type() == TokenType::VARIABLE, L"get token variable type");
 			Assert::IsTrue(token.value() == "var", L"get token variable value");
 
+			// skip token
+			scanner = Scanner(" int");
+			Assert::IsTrue(scanner.getToken().type() == TokenType::INT, L"skip token:space");
+
+			scanner = Scanner("  int");
+			Assert::IsTrue(scanner.getToken().type() == TokenType::INT, L"skip token:space_2");
 
 			// assignment statement 
 			scanner = Scanner("int i = 0;");
 			Assert::IsTrue(scanner.getToken().type() == TokenType::INT, L"assign[0] : int");
-			Assert::IsTrue(scanner.getToken().type() == TokenType::VARIABLE, L"assign[0] : i");
+			Assert::IsTrue(scanner.getToken().type() == TokenType::VARIABLE, L"assign[1] : i");
+			Assert::IsTrue(scanner.getToken().type() == TokenType::ASSIGN, L"assign[2] : =");
+			Assert::IsTrue(scanner.getToken().type() == TokenType::INTEGER, L"assign[3] : 0");
+			Assert::IsTrue(scanner.getToken().type() == TokenType::SEMICOLON, L"assign[4] : ;");
 
-			// 下次起点：skip token
-			
+
+		}
+
+
+		class Node
+		{
+		public:
+			Node(Token token, std::shared_ptr<Node> leftNode, std::shared_ptr<Node> rightNode)
+				:token_(token), leftNode_(leftNode), rightNode_(rightNode)
+			{
+
+			}
+
+		public:
+			Token token_;
+			std::shared_ptr<Node> leftNode_;
+			std::shared_ptr<Node> rightNode_;
+
+		};
+
+		class Parser
+		{
+		public:
+			Parser(std::string text) : scanner_(text)
+			{
+
+			}
+		public:
+			inline Node Tree()
+			{
+				scanner_.getToken();		// skip int
+				auto lhs = scanner_.getToken();	// variable
+				auto leftNode = new Node(lhs, nullptr, nullptr);
+
+				scanner_.getToken();		// skip =
+
+				auto rhs = scanner_.getToken();	// integer
+				auto rightNode = new Node(rhs, nullptr, nullptr);
+				return Node(Token(TokenType::ASSIGN), std::shared_ptr<Node>(leftNode), std::shared_ptr<Node>(rightNode));
+			}
+
+		private:
+			Scanner scanner_;
+		};
+
+		TEST_METHOD(TestParser)
+		{
+			Parser parser = Parser(std::string("int i = 0;"));
+			Node node = parser.Tree();
+			Assert::IsTrue(node.token_.type() == TokenType::ASSIGN, L"syntax tree value -> =");
+			Assert::IsTrue(node.leftNode_->token_.type() == TokenType::VARIABLE, L"syntax tree left -> variable:i");
+			Assert::IsTrue(node.rightNode_->token_.type() == TokenType::INTEGER, L"syntax tree right -> integer:0");
+
+			parser = Parser(std::string("int var = 5;"));
+			node = parser.Tree();
+			Assert::IsTrue(node.token_.type() == TokenType::ASSIGN, L"syntax tree value -> =");
+			Assert::IsTrue(node.leftNode_->token_.type() == TokenType::VARIABLE, L"syntax tree left -> variable:var");
+			Assert::IsTrue(node.rightNode_->token_.type() == TokenType::INTEGER, L"syntax tree right -> integer:5");
+			Assert::IsTrue(node.leftNode_->token_.value() == std::string("var"), L"syntax tree left value -> variable:var");
+			Assert::IsTrue(node.rightNode_->token_.value() == std::string("5"),  L"syntax tree right value -> integer:5");
+
+		}
+
+		TEST_METHOD(TestNode)
+		{
+			Node node = Node(Token(TokenType::ASSIGN), nullptr, nullptr);
 		}
 
 
