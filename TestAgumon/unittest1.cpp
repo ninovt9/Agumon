@@ -265,21 +265,44 @@ namespace TestAgumon
 		}
 
 
+
+
+
+
+
 		class Node
 		{
 		public:
-			Node(Token token, std::shared_ptr<Node> leftNode, std::shared_ptr<Node> rightNode)
-				:token_(token), leftNode_(leftNode), rightNode_(rightNode)
-			{
+			using NodePtr = std::shared_ptr<Node>;
 
+		public:
+			Node() = default;
+			Node(Token token, std::vector<NodePtr> nodeList) :token_(token), nodeList_(nodeList) { ; }
+
+		public:
+			inline bool checkType()
+			{
+				if (nodeList_[0]->token_.type() == TokenType::INT && nodeList_[2]->token_.type() == TokenType::INTEGER)
+				{
+					return true;
+				}
+				else
+				{
+					return false;
+				}
 			}
 
 		public:
 			Token token_;
-			std::shared_ptr<Node> leftNode_;
-			std::shared_ptr<Node> rightNode_;
-
+			std::vector<NodePtr> nodeList_;
 		};
+
+
+		TEST_METHOD(TestNode)
+		{
+			Node node = Node(Token(TokenType::ASSIGN), { nullptr, nullptr, nullptr });
+			node = Node(Token(TokenType::ASSIGN), { nullptr, nullptr });
+		}
 
 		class Parser
 		{
@@ -288,46 +311,52 @@ namespace TestAgumon
 			{
 
 			}
+
 		public:
 			inline Node Tree()
 			{
-				scanner_.getToken();		// skip int
-				auto lhs = scanner_.getToken();	// variable
-				auto leftNode = new Node(lhs, nullptr, nullptr);
+				auto type = Node(scanner_.getToken(), {});
+				auto var = Node(scanner_.getToken(), {});
+				auto assign = scanner_.getToken();
+				auto rhs = Node(scanner_.getToken(), {});
 
-				scanner_.getToken();		// skip =
-
-				auto rhs = scanner_.getToken();	// integer
-				auto rightNode = new Node(rhs, nullptr, nullptr);
-				return Node(Token(TokenType::ASSIGN), std::shared_ptr<Node>(leftNode), std::shared_ptr<Node>(rightNode));
+				return Node(assign, { std::make_shared<Node>(type), std::make_shared<Node>(var), std::make_shared<Node>(rhs) });
 			}
 
 		private:
 			Scanner scanner_;
 		};
 
+
 		TEST_METHOD(TestParser)
 		{
 			Parser parser = Parser(std::string("int i = 0;"));
 			Node node = parser.Tree();
-			Assert::IsTrue(node.token_.type() == TokenType::ASSIGN, L"syntax tree value -> =");
-			Assert::IsTrue(node.leftNode_->token_.type() == TokenType::VARIABLE, L"syntax tree left -> variable:i");
-			Assert::IsTrue(node.rightNode_->token_.type() == TokenType::INTEGER, L"syntax tree right -> integer:0");
+			Assert::IsTrue(node.token_.type() == TokenType::ASSIGN,						L"syntax tree assign -> =");
+			Assert::IsTrue(node.nodeList_[0]->token_.type() == TokenType::INT,			L"syntax tree type -> int");
+			Assert::IsTrue(node.nodeList_[1]->token_.type() == TokenType::VARIABLE,		L"syntax tree var -> variable:i");
+			Assert::IsTrue(node.nodeList_[2]->token_.type() == TokenType::INTEGER,		L"syntax tree value -> integer:0");
 
 			parser = Parser(std::string("int var = 5;"));
 			node = parser.Tree();
-			Assert::IsTrue(node.token_.type() == TokenType::ASSIGN, L"syntax tree value -> =");
-			Assert::IsTrue(node.leftNode_->token_.type() == TokenType::VARIABLE, L"syntax tree left -> variable:var");
-			Assert::IsTrue(node.rightNode_->token_.type() == TokenType::INTEGER, L"syntax tree right -> integer:5");
-			Assert::IsTrue(node.leftNode_->token_.value() == std::string("var"), L"syntax tree left value -> variable:var");
-			Assert::IsTrue(node.rightNode_->token_.value() == std::string("5"),  L"syntax tree right value -> integer:5");
+			Assert::IsTrue(node.token_.type() == TokenType::ASSIGN,						L"syntax tree value -> =");
+			Assert::IsTrue(node.nodeList_[1]->token_.value() == "var",					L"syntax tree var -> variable:var");
+			Assert::IsTrue(node.nodeList_[2]->token_.value() == "5",					L"syntax tree value -> integer:5");
+
+			// type check
+			parser = Parser(std::string("int var = int;"));
+			node = parser.Tree();
+			Assert::IsFalse(node.checkType(), L"type checking error");
+
+			parser = Parser(std::string("int var = 5;"));
+			node = parser.Tree();
+			Assert::IsTrue(node.checkType(), L"type checking successful");
+			
 
 		}
 
-		TEST_METHOD(TestNode)
-		{
-			Node node = Node(Token(TokenType::ASSIGN), nullptr, nullptr);
-		}
+
+
 
 
 	};
