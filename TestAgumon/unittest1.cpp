@@ -36,6 +36,10 @@ namespace TestAgumon
 			Assert::IsTrue(token.type() == TokenType::INTEGER, L"get token integer:1 type ");
 			Assert::IsTrue(token.value() == "1", L"get token integer:1 value");
 
+			token = Token(TokenType::DECIMAL, 1.5);
+			Assert::IsTrue(token.type() == TokenType::DECIMAL, L"get token decimal:1.5 type ");
+			Assert::IsTrue(token.value() == "1.500000", L"get token decimal:1.5 value");
+
 			token = Token(TokenType::INT);
 			Assert::IsTrue(token.type() == TokenType::INT, L"get token int type");
 			Assert::IsTrue(token.value() == "", L"get token int value");
@@ -90,9 +94,18 @@ namespace TestAgumon
 			Assert::IsTrue(token.value() == "50", L"get token integer:50 value");
 			Assert::IsTrue(token.type() == TokenType::INTEGER, L"get token integer:50 type");
 
+			scanner = Scanner("1.5");
+			token = scanner.getToken();
+			Assert::IsTrue(token.type() == TokenType::DECIMAL, L"get token decimal:1.5 type");
+			Assert::IsTrue(token.value() == "1.500000", L"get token decimal:1.5 value");
+
 			scanner = Scanner("int");
 			token = scanner.getToken();
 			Assert::IsTrue(token.type() == TokenType::INT, L"get token int type");
+
+			scanner = Scanner("double");
+			token = scanner.getToken();
+			Assert::IsTrue(token.type() == TokenType::DOUBLE, L"get token double type");
 
 			scanner = Scanner("=");
 			token = scanner.getToken();
@@ -106,6 +119,8 @@ namespace TestAgumon
 			token = scanner.getToken();
 			Assert::IsTrue(token.type() == TokenType::VARIABLE, L"get token variable type");
 			Assert::IsTrue(token.value() == "var", L"get token variable value");
+
+
 
 			// skip token
 			scanner = Scanner(" int");
@@ -124,10 +139,6 @@ namespace TestAgumon
 
 
 		}
-
-
-
-
 
 
 

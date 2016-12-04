@@ -1,6 +1,8 @@
 #pragma once
 
 
+#include "Convert.h"
+
 #include <vector>
 #include <map>
 #include <string>
@@ -12,8 +14,11 @@ namespace Agumon
 	enum class TokenType
 	{
 		INTEGER,
+		DECIMAL,
 
 		INT,
+		DOUBLE,
+
 		VARIABLE,
 
 		ASSIGN,
@@ -27,6 +32,7 @@ namespace Agumon
 	{
 	public:
 		Token(TokenType type, int value) : type_(type), value_(std::to_string(value)) { }
+		Token(TokenType type, double value) : type_(type), value_(std::to_string(value)) { }
 		Token(TokenType type, std::string value = "") : type_(type), value_(value) { }
 
 	public:
@@ -44,6 +50,7 @@ namespace Agumon
 		Dictionary()
 		{
 			map_.insert(std::pair<std::string, Token>("int", Token(TokenType::INT)));
+			map_.insert(std::pair<std::string, Token>("double", Token(TokenType::DOUBLE)));
 			map_.insert(std::pair<std::string, Token>(";", Token(TokenType::SEMICOLON)));
 		}
 	public:
@@ -87,9 +94,9 @@ namespace Agumon
 				value.push_back(getChar());
 			}
 
-			if (value == "int")
+			if (dict_.find(value)) 
 			{
-				return Token(TokenType::INT);
+				return dict_.token(value);
 			}
 			else
 			{
@@ -104,15 +111,20 @@ namespace Agumon
 			{
 				value.push_back(getChar());
 			}
-			return Token(TokenType::INTEGER, toInt(value));
-		}
 
-		inline int toInt(std::string str)
-		{
-			std::stringstream stream(str);
-			int value;
-			stream >> value;
-			return value;
+			if (peekChar() == '.')
+			{
+				value.push_back(getChar());
+				while (isdigit(peekChar()) && !isEndOfExp())
+				{
+					value.push_back(getChar());
+				}
+				return Token(TokenType::DECIMAL, Convert::toDouble(value));
+			}
+			else
+			{
+				return Token(TokenType::INTEGER, Convert::toInt(value));
+			}
 		}
 		inline char Scanner::getChar()
 		{
