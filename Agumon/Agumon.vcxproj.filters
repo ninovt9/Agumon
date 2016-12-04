@@ -18,19 +18,28 @@
     <Text Include="ReadMe.txt" />
   </ItemGroup>
   <ItemGroup>
-    <ClInclude Include="stdafx.h">
+    <ClInclude Include="Scanner.h">
       <Filter>头文件</Filter>
     </ClInclude>
+    <ClInclude Include="stdafx.h">
+      <Filter>资源文件</Filter>
+    </ClInclude>
     <ClInclude Include="targetver.h">
+      <Filter>资源文件</Filter>
+    </ClInclude>
+    <ClInclude Include="Dictionary.h">
       <Filter>头文件</Filter>
     </ClInclude>
   </ItemGroup>
   <ItemGroup>
-    <ClCompile Include="stdafx.cpp">
-      <Filter>源文件</Filter>
-    </ClCompile>
     <ClCompile Include="Agumon.cpp">
       <Filter>源文件</Filter>
+    </ClCompile>
+    <ClCompile Include="Scanner.cpp">
+      <Filter>源文件</Filter>
+    </ClCompile>
+    <ClCompile Include="stdafx.cpp">
+      <Filter>资源文件</Filter>
     </ClCompile>
   </ItemGroup>
 </Project>

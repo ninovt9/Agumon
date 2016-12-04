@@ -1,168 +1,24 @@
 #include "stdafx.h"
 #include "CppUnitTest.h"
 
+#include "Scanner.h"
+#include "Dictionary.h"
+
 #include <map>
 #include <vector>
 #include <algorithm>
 #include <memory>
 
 using namespace Microsoft::VisualStudio::CppUnitTestFramework;
+using namespace Agumon;
 
 namespace TestAgumon
 {		
-
-
 	TEST_CLASS(UnitTest1)
 	{
 
 	public:
-		enum class TokenType
-		{
-			INTEGER,
 
-			INT,
-			ASSIGN,
-			SEMICOLON,
-			VARIABLE,
-		};
-
-		class Token
-		{
-		public:
-			Token(TokenType type, int value)				: type_(type), value_(std::to_string(value)) { }
-			Token(TokenType type, std::string value = "")	: type_(type), value_(value) { }
-
-		public:
-			inline TokenType type(){ return type_; }
-			inline std::string value() { return value_; }
-
-		private:
-			TokenType type_;
-			std::string value_;
-		};
-
-		class Scanner
-		{
-		public:
-			Scanner(std::string text) : text_(text), index_(0) { }
-
-		public:
-			inline Token getToken()
-			{
-				
-				std::vector<char> skipList{ ' ' };
-				while (std::find(skipList.begin(), skipList.end(), peekChar()) != skipList.end())
-				{
-					getChar();
-				}
-
-
-				auto firstChar = peekChar();
-
-				if (isdigit(firstChar))
-				{
-					return getNumberToken();
-				}
-				else if (firstChar == '=')
-				{
-					getChar();
-					return Token(TokenType::ASSIGN);
-				}
-				else if (firstChar == ';')
-				{
-					getChar();
-					return Token(TokenType::SEMICOLON);
-				}
-				else if (isalpha(firstChar))
-				{
-					return getIdentifierToken();
-				}
-				else
-				{
-					; // error
-				}
-			}
-
-			inline Token getIdentifierToken()
-			{
-				std::string value;
-				while (isalpha(peekChar()) && !isEndOfExp())
-				{
-					value.push_back(getChar());
-				}
-
-				if (value == "int")
-				{
-					return Token(TokenType::INT);
-				}
-				else
-				{
-					return Token(TokenType::VARIABLE, value);
-				}
-			}
-
-			inline Token getNumberToken()
-			{
-				std::string value;
-				while (isdigit(peekChar()) && !isEndOfExp())
-				{
-					value.push_back(getChar());
-				}
-				return Token(TokenType::INTEGER, toInt(value));
-			}
-
-			inline int toInt(std::string str)
-			{
-				std::stringstream stream(str);
-				int value;
-				stream >> value;
-				return value;
-			}
-			inline char Scanner::getChar()
-			{ 
-				return isEndOfExp() ? text_[text_.size() - 1] : text_[index_++]; 
-			}
-			inline char peekChar() 
-			{ 
-				return isEndOfExp() ? text_[text_.size() - 1] : text_[index_];
-			}
-			inline std::string text() 
-			{ 
-				return text_; 
-			}
-			inline bool isEndOfExp()
-			{
-				return index_ >= text_.size() ? true : false;
-			}
-
-		private:
-			std::string text_;
-			size_t index_;
-		};
-
-
-		class Dictionary
-		{
-		public:
-			Dictionary()
-			{
-				map_.insert(std::pair<std::string, Token>("int", Token(TokenType::INT)));
-				map_.insert(std::pair<std::string, Token>(";", Token(TokenType::SEMICOLON)));
-			}
-		public:
-			inline bool find(std::string key)
-			{
-				return map_.find(key) != map_.end();
-			}
-			inline bool find(char key)
-			{
-				std::string keyStr;
-				keyStr.push_back(key);
-				return find(keyStr);
-			}
-		private:
-			std::map<std::string, Token> map_;
-		};
 
 	public:
 		
@@ -196,6 +52,11 @@ namespace TestAgumon
 			Assert::IsTrue(dictionary.find("int"), L"find token:int in dictionary");
 			Assert::IsFalse(dictionary.find("aaa"), L"find invalid:aaa in dictionary");
 			Assert::IsTrue(dictionary.find(';'), L"find token:semicolon of char in dictionary");
+
+			Assert::IsTrue(dictionary.token("int").type() == TokenType::INT, L"get key token:int");
+			Assert::IsTrue(dictionary.token(";").type() == TokenType::SEMICOLON, L"get key token:semicolon");
+			Assert::IsTrue(dictionary.token("aaa").type() == TokenType::INVAILD, L"error token");
+
 		}
 
 		TEST_METHOD(TestScanner)
@@ -319,6 +180,8 @@ namespace TestAgumon
 				auto var = Node(scanner_.getToken(), {});
 				auto assign = scanner_.getToken();
 				auto rhs = Node(scanner_.getToken(), {});
+
+				scanner_.getChar();		// skip semicolon
 
 				return Node(assign, { std::make_shared<Node>(type), std::make_shared<Node>(var), std::make_shared<Node>(rhs) });
 			}
