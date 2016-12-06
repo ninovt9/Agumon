@@ -20,20 +20,15 @@ Token Scanner::getToken()
 	{
 		return getNumberToken();
 	}
-	else if (firstChar == '=')
-	{
-		getChar();
-		return Token(TokenType::ASSIGN);
-	}
-	else if (firstChar == ';')
-	{
-		getChar();
-		return Token(TokenType::SEMICOLON);
-	}
 	else if (isalpha(firstChar))
 	{
 		return getIdentifierToken();
 	}
+	else if (dict_.find(firstChar))
+	{
+		return getSignToken();
+	}
+
 	else
 	{
 		; // error

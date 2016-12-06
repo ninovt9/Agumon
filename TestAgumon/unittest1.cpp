@@ -61,8 +61,8 @@ namespace TestAgumon
 
 		TEST_METHOD(TestScanner)
 		{
-			Scanner scanner = Scanner(std::string("1"));
-			Assert::IsTrue(scanner.text() == "1", L"scanner text");
+			Scanner scanner = Scanner(std::string(""));
+			Token token = Token(TokenType::INVAILD);
 
 			// get char
 			scanner = Scanner("1+2");
@@ -80,61 +80,60 @@ namespace TestAgumon
 			Assert::AreEqual(scanner.peekChar(), '1', L"peek end of expression");
 
 			// get token
-			scanner = Scanner("1");
-			auto token = scanner.getToken();
-			Assert::IsTrue(token.value() == "1", L"get token integer:1 value");
-			Assert::IsTrue(token.type() == TokenType::INTEGER, L"get token integer:1 type");
-
 			scanner = Scanner("50");
 			token = scanner.getToken();
-			Assert::IsTrue(token.value() == "50", L"get token integer:50 value");
-			Assert::IsTrue(token.type() == TokenType::INTEGER, L"get token integer:50 type");
+			Assert::IsTrue(token.value() == "50",					L"get token integer:50 value");
+			Assert::IsTrue(token.type() == TokenType::INTEGER,		L"get token integer:50 type");
 
 			scanner = Scanner("1.5");
 			token = scanner.getToken();
-			Assert::IsTrue(token.type() == TokenType::DECIMAL, L"get token decimal:1.5 type");
-			Assert::IsTrue(token.value() == "1.500000", L"get token decimal:1.5 value");
-
-			scanner = Scanner("int");
-			token = scanner.getToken();
-			Assert::IsTrue(token.type() == TokenType::INT, L"get token int type");
-
-			scanner = Scanner("double");
-			token = scanner.getToken();
-			Assert::IsTrue(token.type() == TokenType::DOUBLE, L"get token double type");
-
-			scanner = Scanner("=");
-			token = scanner.getToken();
-			Assert::IsTrue(token.type() == TokenType::ASSIGN, L"get token assign type");
-
-			scanner = Scanner(";");
-			token = scanner.getToken();
-			Assert::IsTrue(token.type() == TokenType::SEMICOLON, L"get token semicolon type");
+			Assert::IsTrue(token.type()	== TokenType::DECIMAL,		L"get token decimal:1.5 type");
+			Assert::IsTrue(token.value() == "1.500000",				L"get token decimal:1.5 value");
 
 			scanner = Scanner("var");
 			token = scanner.getToken();
-			Assert::IsTrue(token.type() == TokenType::VARIABLE, L"get token variable type");
-			Assert::IsTrue(token.value() == "var", L"get token variable value");
+			Assert::IsTrue(token.type() == TokenType::VARIABLE,		L"get token variable type");
+			Assert::IsTrue(token.value() == "var",					L"get token variable value");
+
+			scanner = Scanner("int");
+			Assert::IsTrue(scanner.getToken().type() == TokenType::INT,			L"get token int type");
+
+			scanner = Scanner("double");
+			Assert::IsTrue(scanner.getToken().type() == TokenType::DOUBLE,		L"get token double type");
+
+			scanner = Scanner("=");
+			Assert::IsTrue(scanner.getToken().type() == TokenType::ASSIGN,		L"get token assign sign");
+
+			scanner = Scanner(";");
+			Assert::IsTrue(scanner.getToken().type() == TokenType::SEMICOLON,	L"get token semicolon sign");
+
+			scanner = Scanner("+");
+			Assert::IsTrue(scanner.getToken().type() == TokenType::PLUS,		L"get token plus sign");
+
+			scanner = Scanner("-");
+			Assert::IsTrue(scanner.getToken().type() == TokenType::MINUS,		L"get token minus sign");
+
+			scanner = Scanner("*");
+			Assert::IsTrue(scanner.getToken().type() == TokenType::MUL,			L"get token mul sign");
+
+			scanner = Scanner("/");
+			Assert::IsTrue(scanner.getToken().type() == TokenType::DIV,			L"get token div sign");
 
 			// skip token
 			scanner = Scanner(" int");
-			Assert::IsTrue(scanner.getToken().type() == TokenType::INT, L"skip token:space");
+			Assert::IsTrue(scanner.getToken().type() == TokenType::INT,			L"skip token space ");
 
-			scanner = Scanner("  int");
-			Assert::IsTrue(scanner.getToken().type() == TokenType::INT, L"skip token:space_2");
-
-			// assignment statement 
+			// statement 
 			scanner = Scanner("int i = 0;");
-			Assert::IsTrue(scanner.getToken().type() == TokenType::INT, L"assign[0] : int");
-			Assert::IsTrue(scanner.getToken().type() == TokenType::VARIABLE, L"assign[1] : i");
-			Assert::IsTrue(scanner.getToken().type() == TokenType::ASSIGN, L"assign[2] : =");
-			Assert::IsTrue(scanner.getToken().type() == TokenType::INTEGER, L"assign[3] : 0");
-			Assert::IsTrue(scanner.getToken().type() == TokenType::SEMICOLON, L"assign[4] : ;");
+			Assert::IsTrue(scanner.getToken().type() == TokenType::INT,			L"assign[0] : int");
+			Assert::IsTrue(scanner.getToken().type() == TokenType::VARIABLE,	L"assign[1] : i");
+			Assert::IsTrue(scanner.getToken().type() == TokenType::ASSIGN,		L"assign[2] : =");
+			Assert::IsTrue(scanner.getToken().type() == TokenType::INTEGER,		L"assign[3] : 0");
+			Assert::IsTrue(scanner.getToken().type() == TokenType::SEMICOLON,	L"assign[4] : ;");
+
 
 
 		}
-
-
 
 		class Node
 		{
@@ -272,44 +271,25 @@ namespace TestAgumon
 			Assert::IsTrue(node->nodeList_[0]->token_.type() == TokenType::VARIABLE,		L"syntax tree var -> variable:i");
 			Assert::IsTrue(node->nodeList_[1]->token_.type() == TokenType::INTEGER,			L"syntax tree value -> integer:0");
 
-
-
 			parser = Parser(std::string("int i = 0;"));
 			node = parser.node();
 			auto symbolTable = parser.symbolTable();
 			node->walk(symbolTable);
 			Assert::IsTrue(symbolTable.find("i") != symbolTable.end(), L"defined variable");
 
-			// 符号表先这么凑乎着。。。
 
-			// parser = 
+			parser = Parser(std::string("double var = 5.0;"));
+			node = parser.node();
+			Assert::IsTrue(node->token_.type() == TokenType::ASSIGN, L"syntax tree value -> =");
+			Assert::IsTrue(node->nodeList_[0]->token_.type() == TokenType::VARIABLE, L"syntax tree type -> double");
+			Assert::IsTrue(node->nodeList_[1]->token_.type() == TokenType::DECIMAL, L"syntax tree value -> integer:0");
 
-			// parser.walk();
-			// Assert::IsTrue(symbolTable.find("i") != symbolTable.end(), L"defined variable");
+			parser = Parser(std::string("1 + 1"));
+			// node = parser.node();
+			// Assert::IsTrue(node->token_.type() == TokenType::PLUS, L"syntax tree for plus -> +");
 
 
-			//parser = Parser(std::string("double var = 5.0;"));
-			//node = parser.node();
-			//Assert::IsTrue(node->token_.type() == TokenType::ASSIGN, L"syntax tree value -> =");
-			//Assert::IsTrue(node->nodeList_[0]->token_.type() == TokenType::DOUBLE, L"syntax tree type -> double");
-			//Assert::IsTrue(node->nodeList_[2]->token_.type() == TokenType::DECIMAL, L"syntax tree value -> integer:0");
 	
-
-			// type check
-			//parser = Parser(std::string("int var = int;"));
-			//node = parser.node();
-			//Assert::IsTrue(node->checkType() == TokenType::ASSIGN, L"check type for assign");
-
-			//node = parser.Tree();
-			//Assert::IsFalse(node.checkType(), L"type checking error");
-
-			//parser = Parser(std::string("int var = 5;"));
-			//node = parser.Tree();
-			//Assert::IsTrue(node.checkType(), L"type checking successful for assign:int");
-
-			//parser = Parser(std::string("double var = 5.0;"));
-			//node = parser.Tree();
-			//Assert::IsTrue(node.checkType(), L"type checking successful for assign:double");
 			
 
 		}
