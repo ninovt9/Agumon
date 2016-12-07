@@ -104,6 +104,13 @@ namespace Agumon
 		bool						isEndOfExp();
 
 	public:
+		inline Token peekToken()
+		{
+			auto scanner = Scanner(std::string(text_.begin() + index_, text_.end()));
+			return scanner.getToken();
+		}
+
+	public:
 		Token						getSignToken();
 		Token						getIdentifierToken();
 		Token						getNumberToken();

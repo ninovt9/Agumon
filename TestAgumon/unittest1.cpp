@@ -123,6 +123,18 @@ namespace TestAgumon
 			scanner = Scanner(" int");
 			Assert::IsTrue(scanner.getToken().type() == TokenType::INT,			L"skip token space ");
 
+			// peek token
+			scanner = Scanner("int");
+			Assert::IsTrue(scanner.peekToken().type() == TokenType::INT);
+
+			scanner = Scanner("=");
+			Assert::IsTrue(scanner.peekToken().type() == TokenType::ASSIGN);
+
+			//scanner = Scanner("int i = 0;");
+			//Assert::IsTrue(scanner.peekToken().type() == TokenType::INT);
+			//scanner.getToken();
+			//Assert::IsTrue(scanner.peekToken().type() == TokenType::VARIABLE);
+
 			// statement 
 			scanner = Scanner("int i = 0;");
 			Assert::IsTrue(scanner.getToken().type() == TokenType::INT,			L"assign[0] : int");
@@ -130,9 +142,16 @@ namespace TestAgumon
 			Assert::IsTrue(scanner.getToken().type() == TokenType::ASSIGN,		L"assign[2] : =");
 			Assert::IsTrue(scanner.getToken().type() == TokenType::INTEGER,		L"assign[3] : 0");
 			Assert::IsTrue(scanner.getToken().type() == TokenType::SEMICOLON,	L"assign[4] : ;");
+		}
 
-
-
+		TEST_METHOD(TestScanner_PeekToken)
+		{
+			auto scanner = Scanner("int i = 0;");
+			Assert::IsTrue(scanner.peekToken().type() == TokenType::INT,		L"int");
+			scanner.getToken();
+			Assert::IsTrue(scanner.peekToken().type() == TokenType::VARIABLE,	L"i");
+			scanner.getToken();
+			Assert::IsTrue(scanner.peekToken().type() == TokenType::ASSIGN,		L"=");
 		}
 
 		class Node
@@ -212,6 +231,22 @@ namespace TestAgumon
 			}
 		};
 
+		class AddNode : public Node
+		{
+		public:
+			AddNode() = default;
+			AddNode(Token token, std::vector<NodePtr> nodeList) : Node(token, nodeList) { ; }
+		public:
+			inline TokenType checkType()
+			{
+				return token_.type();
+			}
+			inline void walk(std::map<std::string, Token>& symbolTable)
+			{
+				;
+			}
+		};
+
 
 		TEST_METHOD(TestNode)
 		{
@@ -241,14 +276,67 @@ namespace TestAgumon
 			}
 		public:
 
+			inline bool isTypeToken()
+			{
+				return scanner_.peekToken().type() == TokenType::INT ||
+					scanner_.peekToken().type() == TokenType::DOUBLE;
+			}
+
+			inline bool isNumberToken()
+			{
+				return scanner_.peekToken().type() == TokenType::INTEGER || 
+					scanner_.peekToken().type() == TokenType::DECIMAL;
+			}
+
 			inline std::shared_ptr<Node> node()
+			{
+				if(isTypeToken())
+				{
+					return assignNode();
+				}
+				else if(isNumberToken())
+				{
+					return expNode();
+				}
+				else
+				{
+					return nullptr; // error
+				}
+			}
+
+			inline std::shared_ptr<Node> assignNode()
 			{
 				std::shared_ptr<Node> type = std::make_shared<TypeNode>(TypeNode(scanner_.getToken(), {}));
 				std::shared_ptr<Node> var = std::make_shared<VarNode>(VarNode(scanner_.getToken(), {}));
 				Token assign = scanner_.getToken();
-				std::shared_ptr<Node> rhs = std::make_shared<NumberNode>(NumberNode(scanner_.getToken(), {}));
+				std::shared_ptr<Node> rhs = expNode();
 
-				return std::make_shared<AssignNode>(AssignNode(assign, {var, rhs}));
+				return std::make_shared<AssignNode>(AssignNode(assign, { var, rhs }));
+			}
+
+			inline std::shared_ptr<Node> expNode()
+			{
+				std::shared_ptr<Node> lhs = std::make_shared<NumberNode>(NumberNode(scanner_.getToken(), {}));
+
+				if (scanner_.peekToken().type() == TokenType::PLUS)
+				{
+					Token plus = scanner_.getToken();
+					std::shared_ptr<Node> rhs = std::make_shared<NumberNode>(NumberNode(scanner_.getToken(), {}));
+					return std::make_shared<AddNode>(AddNode(plus, { lhs, rhs }));
+				}
+				else if (scanner_.peekToken().type() == TokenType::MINUS)
+				{
+					Token minus = scanner_.getToken();
+					std::shared_ptr<Node> rhs = std::make_shared<NumberNode>(NumberNode(scanner_.getToken(), {}));
+					return std::make_shared<AddNode>(AddNode(minus, { lhs, rhs }));
+				}
+				else
+				{
+					// error
+					return lhs;
+				}
+
+
 			}
 
 			inline std::map<std::string, Token> symbolTable()
@@ -261,37 +349,57 @@ namespace TestAgumon
 			std::map<std::string, Token> symbolTable_;
 		};
 
-
-		TEST_METHOD(TestParser)
+		TEST_METHOD(TestParser_AssignStatForInt)
 		{
-
-			Parser parser = Parser(std::string("int i = 0;"));
+			auto parser = Parser(std::string("int i = 0;"));
 			auto node = parser.node();
-			Assert::IsTrue(node->token_.type() == TokenType::ASSIGN,						L"syntax tree assign -> =");
-			Assert::IsTrue(node->nodeList_[0]->token_.type() == TokenType::VARIABLE,		L"syntax tree var -> variable:i");
-			Assert::IsTrue(node->nodeList_[1]->token_.type() == TokenType::INTEGER,			L"syntax tree value -> integer:0");
+			Assert::IsTrue(node->token_.type() == TokenType::ASSIGN, L"syntax tree assign -> =");
+			Assert::IsTrue(node->nodeList_[0]->token_.type() == TokenType::VARIABLE, L"syntax tree var -> variable:i");
+			Assert::IsTrue(node->nodeList_[1]->token_.type() == TokenType::INTEGER, L"syntax tree value -> integer:0");
+		}
 
-			parser = Parser(std::string("int i = 0;"));
-			node = parser.node();
+		TEST_METHOD(TestParser_DefinedVariable)
+		{
+			auto parser = Parser(std::string("int i = 0;"));
+			auto node = parser.node();
 			auto symbolTable = parser.symbolTable();
 			node->walk(symbolTable);
-			Assert::IsTrue(symbolTable.find("i") != symbolTable.end(), L"defined variable");
+			Assert::IsTrue(symbolTable.find("i") != symbolTable.end(),					L"var.name : i");
+		}
+
+		TEST_METHOD(TestParser_AddStat)
+		{
+			auto parser = Parser(std::string("1 + 1"));
+			auto node = parser.node();
+			Assert::IsTrue(node->token_.type() == TokenType::PLUS,						L"value : +");
+			Assert::IsTrue(node->nodeList_[0]->token_.type() == TokenType::INTEGER,		L"lhs : 1");
+			Assert::IsTrue(node->nodeList_[1]->token_.type() == TokenType::INTEGER,		L"rhs : 1");
+		}
 
 
-			parser = Parser(std::string("double var = 5.0;"));
-			node = parser.node();
-			Assert::IsTrue(node->token_.type() == TokenType::ASSIGN, L"syntax tree value -> =");
-			Assert::IsTrue(node->nodeList_[0]->token_.type() == TokenType::VARIABLE, L"syntax tree type -> double");
-			Assert::IsTrue(node->nodeList_[1]->token_.type() == TokenType::DECIMAL, L"syntax tree value -> integer:0");
+		TEST_METHOD(TestParser_AssignStatForDouble)
+		{
+			auto parser = Parser(std::string("double var = 5.0;"));
+			auto node = parser.node();
+			Assert::IsTrue(node->token_.type() == TokenType::ASSIGN,					L"value : =");
+			Assert::IsTrue(node->nodeList_[0]->token_.type() == TokenType::VARIABLE,	L"type : double");
+			Assert::IsTrue(node->nodeList_[1]->token_.type() == TokenType::DECIMAL,		L"rhs : integer:0");
+		}
 
-			parser = Parser(std::string("1 + 1"));
-			// node = parser.node();
-			// Assert::IsTrue(node->token_.type() == TokenType::PLUS, L"syntax tree for plus -> +");
+		TEST_METHOD(TestParser_AssignStatForAdd)
+		{
+			auto parser = Parser(std::string("int var = 1 + 2;"));
+			auto node = parser.node();
+			Assert::IsTrue(node->token_.type() == TokenType::ASSIGN,					L"value : =");
+			Assert::IsTrue(node->nodeList_[1]->token_.type() == TokenType::PLUS,		L"rhs.value : +");
+		}
 
-
-	
-			
-
+		TEST_METHOD(TestParser_AssignStatForSub)
+		{
+			auto parser = Parser(std::string("int var = 1 - 2;"));
+			auto node = parser.node();
+			Assert::IsTrue(node->token_.type() == TokenType::ASSIGN, L"value : =");
+			Assert::IsTrue(node->nodeList_[1]->token_.type() == TokenType::MINUS,		L"rhs.value : -");
 		}
 
 
