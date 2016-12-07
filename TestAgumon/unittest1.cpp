@@ -314,9 +314,31 @@ namespace TestAgumon
 				return std::make_shared<AssignNode>(AssignNode(assign, { var, rhs }));
 			}
 
-			inline std::shared_ptr<Node> expNode()
+			inline std::shared_ptr<Node> exp1Node()
 			{
 				std::shared_ptr<Node> lhs = std::make_shared<NumberNode>(NumberNode(scanner_.getToken(), {}));
+
+				if (scanner_.peekToken().type() == TokenType::MUL)
+				{
+					Token mul = scanner_.getToken();
+					std::shared_ptr<Node> rhs = std::make_shared<NumberNode>(NumberNode(scanner_.getToken(), {}));
+					return std::make_shared<AddNode>(AddNode(mul, { lhs, rhs }));
+				}
+				else if (scanner_.peekToken().type() == TokenType::DIV)
+				{
+					Token div = scanner_.getToken();
+					std::shared_ptr<Node> rhs = std::make_shared<NumberNode>(NumberNode(scanner_.getToken(), {}));
+					return std::make_shared<AddNode>(AddNode(div, { lhs, rhs }));
+				}
+				else
+				{
+					return lhs;
+				}
+			}
+
+			inline std::shared_ptr<Node> expNode()
+			{
+				std::shared_ptr<Node> lhs = exp1Node();
 
 				if (scanner_.peekToken().type() == TokenType::PLUS)
 				{
@@ -332,7 +354,6 @@ namespace TestAgumon
 				}
 				else
 				{
-					// error
 					return lhs;
 				}
 
@@ -402,10 +423,37 @@ namespace TestAgumon
 			Assert::IsTrue(node->nodeList_[1]->token_.type() == TokenType::MINUS,		L"rhs.value : -");
 		}
 
+		TEST_METHOD(TestParser_AssignStatForMul)
+		{
+			auto parser = Parser(std::string("int var = 1 * 2;"));
+			auto node = parser.node();
+			Assert::IsTrue(node->token_.type() == TokenType::ASSIGN, L"value : =");
+			Assert::IsTrue(node->nodeList_[1]->token_.type() == TokenType::MUL, L"rhs.value : *");
+		}
 
+		TEST_METHOD(TestParser_AssignStatForDiv)
+		{
+			auto parser = Parser(std::string("int var = 1 / 2;"));
+			auto node = parser.node();
+			Assert::IsTrue(node->token_.type() == TokenType::ASSIGN, L"value : =");
+			Assert::IsTrue(node->nodeList_[1]->token_.type() == TokenType::DIV, L"rhs.value : /");
+		}
 
+		TEST_METHOD(TestParser_AssignStatForAddAndSub)
+		{
+			auto parser = Parser(std::string("int var = 1 * 2 + 3;"));
+			auto node = parser.node();
+			Assert::IsTrue(node->token_.type() == TokenType::ASSIGN, L"value : =");
+			Assert::IsTrue(node->nodeList_[1]->token_.type() == TokenType::PLUS, L"rhs.value : +");
+		}
 
-
+		TEST_METHOD(TestParser_AssignStatForAddAndDiv)
+		{
+			auto parser = Parser(std::string("int var = 1 + 2 / 3;"));
+			auto node = parser.node();
+			Assert::IsTrue(node->token_.type() == TokenType::ASSIGN, L"value : =");
+			Assert::IsTrue(node->nodeList_[1]->token_.type() == TokenType::PLUS, L"rhs.value : +");
+		}
 	};
 
 
