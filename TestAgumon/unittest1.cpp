@@ -119,6 +119,12 @@ namespace TestAgumon
 			scanner = Scanner("/");
 			Assert::IsTrue(scanner.getToken().type() == TokenType::DIV,			L"get token div sign");
 
+			scanner = Scanner("(");
+			Assert::IsTrue(scanner.getToken().type() == TokenType::LEFT_PAR,	L"get token left parenthesis sign");
+
+			scanner = Scanner(")");
+			Assert::IsTrue(scanner.getToken().type() == TokenType::RIGHT_PAR,	L"get token right parenthesis sign");
+
 			// skip token
 			scanner = Scanner(" int");
 			Assert::IsTrue(scanner.getToken().type() == TokenType::INT,			L"skip token space ");
@@ -129,11 +135,6 @@ namespace TestAgumon
 
 			scanner = Scanner("=");
 			Assert::IsTrue(scanner.peekToken().type() == TokenType::ASSIGN);
-
-			//scanner = Scanner("int i = 0;");
-			//Assert::IsTrue(scanner.peekToken().type() == TokenType::INT);
-			//scanner.getToken();
-			//Assert::IsTrue(scanner.peekToken().type() == TokenType::VARIABLE);
 
 			// statement 
 			scanner = Scanner("int i = 0;");
@@ -296,7 +297,7 @@ namespace TestAgumon
 				}
 				else if(isNumberToken())
 				{
-					return expNode();
+					return expNode2();
 				}
 				else
 				{
@@ -309,14 +310,34 @@ namespace TestAgumon
 				std::shared_ptr<Node> type = std::make_shared<TypeNode>(TypeNode(scanner_.getToken(), {}));
 				std::shared_ptr<Node> var = std::make_shared<VarNode>(VarNode(scanner_.getToken(), {}));
 				Token assign = scanner_.getToken();
-				std::shared_ptr<Node> rhs = expNode();
+				std::shared_ptr<Node> rhs = expNode2();
 
 				return std::make_shared<AssignNode>(AssignNode(assign, { var, rhs }));
 			}
 
-			inline std::shared_ptr<Node> exp1Node()
+			inline std::shared_ptr<Node> termNode()
 			{
-				std::shared_ptr<Node> lhs = std::make_shared<NumberNode>(NumberNode(scanner_.getToken(), {}));
+				std::shared_ptr<Node> result = nullptr;
+
+				if (scanner_.peekToken().type() == TokenType::LEFT_PAR)
+				{
+					scanner_.getToken();
+					result = expNode2();
+					scanner_.getToken();
+				}
+				else
+				{
+					result = std::make_shared<NumberNode>(NumberNode(scanner_.getToken(), {}));
+				}
+
+				return result;
+				
+
+			}
+
+			inline std::shared_ptr<Node> expNode1()
+			{
+				std::shared_ptr<Node> lhs = termNode();
 
 				if (scanner_.peekToken().type() == TokenType::MUL)
 				{
@@ -336,9 +357,9 @@ namespace TestAgumon
 				}
 			}
 
-			inline std::shared_ptr<Node> expNode()
+			inline std::shared_ptr<Node> expNode2()
 			{
-				std::shared_ptr<Node> lhs = exp1Node();
+				std::shared_ptr<Node> lhs = expNode1();
 
 				if (scanner_.peekToken().type() == TokenType::PLUS)
 				{
@@ -453,6 +474,14 @@ namespace TestAgumon
 			auto node = parser.node();
 			Assert::IsTrue(node->token_.type() == TokenType::ASSIGN, L"value : =");
 			Assert::IsTrue(node->nodeList_[1]->token_.type() == TokenType::PLUS, L"rhs.value : +");
+		}
+
+		TEST_METHOD(TestParser_AssignStatForParenthesis)
+		{
+			auto parser = Parser(std::string("int var = (1 + 2) * 3;"));
+			auto node = parser.node();
+			Assert::IsTrue(node->token_.type() == TokenType::ASSIGN, L"value : =");
+			Assert::IsTrue(node->nodeList_[1]->token_.type() == TokenType::MUL, L"rhs.value : *");
 		}
 	};
 

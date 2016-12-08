@@ -28,6 +28,8 @@ namespace Agumon
 		MINUS,
 		MUL,
 		DIV,
+		LEFT_PAR,
+		RIGHT_PAR,
 
 		INVAILD,
 		
@@ -62,6 +64,8 @@ namespace Agumon
 			map_.insert(std::pair<std::string, Token>("-", Token(TokenType::MINUS)));
 			map_.insert(std::pair<std::string, Token>("*", Token(TokenType::MUL)));
 			map_.insert(std::pair<std::string, Token>("/", Token(TokenType::DIV)));
+			map_.insert(std::pair<std::string, Token>("(", Token(TokenType::LEFT_PAR)));
+			map_.insert(std::pair<std::string, Token>(")", Token(TokenType::RIGHT_PAR)));
 		}
 	public:
 		Token						token(std::string key);

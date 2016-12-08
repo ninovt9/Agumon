@@ -31,6 +31,6 @@ Token Scanner::getToken()
 
 	else
 	{
-		; // error
+		return Token(TokenType::INVAILD); // error
 	}
 }
