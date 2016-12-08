@@ -43,7 +43,6 @@ namespace TestAgumon
 			token = Token(TokenType::ASSIGN);
 			Assert::IsTrue(token.type() == TokenType::ASSIGN, L"get token assign type");
 			Assert::IsTrue(token.value() == "", L"get token assign value");
-
 		}
 
 		TEST_METHOD(TestDictionary)
@@ -325,14 +324,72 @@ namespace TestAgumon
 					result = expNode2();
 					scanner_.getToken();
 				}
+				else if (scanner_.peekToken().type() == TokenType::PLUS)
+				{
+					scanner_.getToken();
+					// result = std::make_shared<NumberNode>(NumberNode(scanner_.getToken(), {}));
+					// result = expNode2();
+					result = termNode();
+				}
+				else if (scanner_.peekToken().type() == TokenType::MINUS)
+				{
+					scanner_.getToken();
+					auto tmpToken = scanner_.getToken();
+					std::string value;
+
+					if (tmpToken.type() == TokenType::INTEGER)
+					{
+						auto i = Convert::toInt(tmpToken.value());
+						i = -i;
+						value = std::to_string(i);
+					}
+					else if (tmpToken.type() == TokenType::DECIMAL)
+					{
+						auto i = Convert::toDouble(tmpToken.value());
+						i = -i;
+						value = std::to_string(i);
+					}
+
+
+					auto token = Token(tmpToken.type(), value);
+					// result = std::make_shared<NumberNode>(NumberNode(token, {}));
+					// result = expNode2();
+					result = termNode();
+
+					//scanner_.getToken();
+					//auto tmpToken = scanner_.getToken();
+					//auto token = Token(tmpToken.type(), std::string("-") + tmpToken.value());
+					//result = std::make_shared<NumberNode>(NumberNode(token, {}));
+				}
 				else
 				{
 					result = std::make_shared<NumberNode>(NumberNode(scanner_.getToken(), {}));
 				}
 
 				return result;
-				
+			
+			}
 
+			inline std::shared_ptr<Node> expNode0()
+			{
+				std::shared_ptr<Node> result = termNode();
+
+				if (scanner_.peekToken().type() == TokenType::PLUS)
+				{
+					scanner_.getToken();
+					return std::make_shared<NumberNode>(NumberNode(scanner_.getToken(), {}));
+				}
+				else if (scanner_.peekToken().type() == TokenType::MINUS)
+				{
+					scanner_.getToken();
+					auto tmpToken = scanner_.getToken();
+					auto token = Token(tmpToken.type(), std::string("-") + tmpToken.value());
+					return std::make_shared<NumberNode>(NumberNode(token, {}));
+				}
+				else
+				{
+					return result;
+				}
 			}
 
 			inline std::shared_ptr<Node> expNode1()
@@ -483,9 +540,47 @@ namespace TestAgumon
 			Assert::IsTrue(node->token_.type() == TokenType::ASSIGN, L"value : =");
 			Assert::IsTrue(node->nodeList_[1]->token_.type() == TokenType::MUL, L"rhs.value : *");
 		}
+
+		TEST_METHOD(TestParser_AssignStatForPositiveNumber)
+		{
+			auto parser = Parser(std::string("int var = +1;"));
+			auto node = parser.node();
+			Assert::IsTrue(node->token_.type() == TokenType::ASSIGN, L"value : =");
+			Assert::IsTrue(node->nodeList_[1]->token_.type() == TokenType::INTEGER, L"rhs.value : integer:1");
+		}
+
+		TEST_METHOD(TestParser_AssignStatForNegativeNumber)
+		{
+			auto parser = Parser(std::string("int var = -1;"));
+			auto node = parser.node();
+			Assert::IsTrue(node->token_.type() == TokenType::ASSIGN, L"value : =");
+			Assert::IsTrue(node->nodeList_[1]->token_.type() == TokenType::INTEGER, L"rhs.value : integer");
+			Assert::IsTrue(node->nodeList_[1]->token_.value() == "-1", L"rhs.value : -1");
+
+			//parser = Parser(std::string("int var = -(-1);"));
+			//node = parser.node();
+			//Assert::IsTrue(node->nodeList_[1]->token_.value() == "1", L"rhs.value : 1");
+		}
+
+		TEST_METHOD(TestParser_AssignStatForPositiveNumberAndParenthesis)
+		{
+			auto parser = Parser(std::string("int var = (+1);"));
+			auto node = parser.node();
+			Assert::IsTrue(node->nodeList_[1]->token_.type() == TokenType::INTEGER, L"rhs.value : integer:1");
+
+			//parser = Parser(std::string("int var = -(+1);"));
+			//node = parser.node();
+			//Assert::IsTrue(node->nodeList_[1]->token_.type() == TokenType::INTEGER, L"rhs.value : integer:-1");
+		}
+
+		TEST_METHOD(TestParser_AssignStatForNegativeNumberAndParenthesis)
+		{
+			auto parser = Parser(std::string("int var = (-1);"));
+			auto node = parser.node();
+			Assert::IsTrue(node->token_.type() == TokenType::ASSIGN, L"value : =");
+			Assert::IsTrue(node->nodeList_[1]->token_.type() == TokenType::INTEGER, L"rhs.value : integer");
+			Assert::IsTrue(node->nodeList_[1]->token_.value() == "-1", L"rhs.value : -1");
+		}
 	};
-
-
-
 
 }
