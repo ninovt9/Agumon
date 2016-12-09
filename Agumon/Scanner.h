@@ -15,9 +15,13 @@ namespace Agumon
 	{
 		INTEGER,
 		DECIMAL,
+		TRUE,
+		FALSE,
+		
 
 		INT_SIGN,
 		DOUBLE_SIGN,
+		BOOL_SIGN,
 		
 
 		VARIABLE,
@@ -59,6 +63,9 @@ namespace Agumon
 		{
 			map_.insert(std::pair<std::string, Token>("int", Token(TokenType::INT_SIGN)));
 			map_.insert(std::pair<std::string, Token>("double", Token(TokenType::DOUBLE_SIGN)));
+			map_.insert(std::pair<std::string, Token>("bool", Token(TokenType::BOOL_SIGN)));
+			map_.insert(std::pair<std::string, Token>("true", Token(TokenType::TRUE)));
+			map_.insert(std::pair<std::string, Token>("false", Token(TokenType::FALSE)));
 			map_.insert(std::pair<std::string, Token>(";", Token(TokenType::SEMICOLON)));
 			map_.insert(std::pair<std::string, Token>("=", Token(TokenType::ASSIGN)));
 			map_.insert(std::pair<std::string, Token>("+", Token(TokenType::PLUS)));

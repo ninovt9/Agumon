@@ -124,8 +124,14 @@ namespace TestAgumon
 			scanner = Scanner(")");
 			Assert::IsTrue(scanner.getToken().type() == TokenType::RIGHT_PAR,	L"get token right parenthesis sign");
 
-			//scanner = Scanner("bool");
-			//Assert::IsTrue(scanner.getToken().type() == TokenType::BOOL)
+			scanner = Scanner("bool");
+			Assert::IsTrue(scanner.getToken().type() == TokenType::BOOL_SIGN,	L"get token bool sign");
+
+			scanner = Scanner("true");
+			Assert::IsTrue(scanner.getToken().type() == TokenType::TRUE,		L"get token true");
+
+			scanner = Scanner("false");
+			Assert::IsTrue(scanner.getToken().type() == TokenType::FALSE,		L"get token false");
 
 			// skip token
 			scanner = Scanner(" int");
