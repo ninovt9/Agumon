@@ -124,6 +124,9 @@ namespace TestAgumon
 			scanner = Scanner(")");
 			Assert::IsTrue(scanner.getToken().type() == TokenType::RIGHT_PAR,	L"get token right parenthesis sign");
 
+			//scanner = Scanner("bool");
+			//Assert::IsTrue(scanner.getToken().type() == TokenType::BOOL)
+
 			// skip token
 			scanner = Scanner(" int");
 			Assert::IsTrue(scanner.getToken().type() == TokenType::INT,			L"skip token space ");
@@ -327,39 +330,23 @@ namespace TestAgumon
 				else if (scanner_.peekToken().type() == TokenType::PLUS)
 				{
 					scanner_.getToken();
-					// result = std::make_shared<NumberNode>(NumberNode(scanner_.getToken(), {}));
-					// result = expNode2();
 					result = termNode();
 				}
 				else if (scanner_.peekToken().type() == TokenType::MINUS)
-				{
-					scanner_.getToken();
-					auto tmpToken = scanner_.getToken();
-					std::string value;
-
-					if (tmpToken.type() == TokenType::INTEGER)
+				{	
+					Token minus = scanner_.getToken();
+					std::shared_ptr<Node> lhs, rhs;
+					if (scanner_.peekToken().type() == TokenType::INTEGER)
 					{
-						auto i = Convert::toInt(tmpToken.value());
-						i = -i;
-						value = std::to_string(i);
+						lhs = std::make_shared<NumberNode>(NumberNode(Token(TokenType::INTEGER, 0), {}));
 					}
-					else if (tmpToken.type() == TokenType::DECIMAL)
+					else if (scanner_.peekToken().type() == TokenType::DECIMAL)
 					{
-						auto i = Convert::toDouble(tmpToken.value());
-						i = -i;
-						value = std::to_string(i);
+						lhs = std::make_shared<NumberNode>(NumberNode(Token(TokenType::DECIMAL, 0.0), {}));
 					}
-
-
-					auto token = Token(tmpToken.type(), value);
-					// result = std::make_shared<NumberNode>(NumberNode(token, {}));
-					// result = expNode2();
-					result = termNode();
-
-					//scanner_.getToken();
-					//auto tmpToken = scanner_.getToken();
-					//auto token = Token(tmpToken.type(), std::string("-") + tmpToken.value());
-					//result = std::make_shared<NumberNode>(NumberNode(token, {}));
+					
+					rhs = termNode();
+					result = std::make_shared<AddNode>(AddNode(minus, { lhs,  rhs}));
 				}
 				else
 				{
@@ -554,32 +541,25 @@ namespace TestAgumon
 			auto parser = Parser(std::string("int var = -1;"));
 			auto node = parser.node();
 			Assert::IsTrue(node->token_.type() == TokenType::ASSIGN, L"value : =");
-			Assert::IsTrue(node->nodeList_[1]->token_.type() == TokenType::INTEGER, L"rhs.value : integer");
-			Assert::IsTrue(node->nodeList_[1]->token_.value() == "-1", L"rhs.value : -1");
-
-			//parser = Parser(std::string("int var = -(-1);"));
-			//node = parser.node();
-			//Assert::IsTrue(node->nodeList_[1]->token_.value() == "1", L"rhs.value : 1");
+			Assert::IsTrue(node->nodeList_[1]->token_.type() == TokenType::MINUS, L"rhs.type : -");
 		}
 
 		TEST_METHOD(TestParser_AssignStatForPositiveNumberAndParenthesis)
 		{
 			auto parser = Parser(std::string("int var = (+1);"));
 			auto node = parser.node();
-			Assert::IsTrue(node->nodeList_[1]->token_.type() == TokenType::INTEGER, L"rhs.value : integer:1");
+			Assert::IsTrue(node->nodeList_[1]->token_.type() == TokenType::INTEGER, L"rhs.type : integer:1");
 
-			//parser = Parser(std::string("int var = -(+1);"));
-			//node = parser.node();
-			//Assert::IsTrue(node->nodeList_[1]->token_.type() == TokenType::INTEGER, L"rhs.value : integer:-1");
+			parser = Parser(std::string("int var = -(+1);"));
+			node = parser.node();
+			Assert::IsTrue(node->nodeList_[1]->token_.type() == TokenType::MINUS, L"rhs.type : -");
 		}
 
 		TEST_METHOD(TestParser_AssignStatForNegativeNumberAndParenthesis)
 		{
-			auto parser = Parser(std::string("int var = (-1);"));
+			auto parser = Parser(std::string("int var = -(-1);"));
 			auto node = parser.node();
-			Assert::IsTrue(node->token_.type() == TokenType::ASSIGN, L"value : =");
-			Assert::IsTrue(node->nodeList_[1]->token_.type() == TokenType::INTEGER, L"rhs.value : integer");
-			Assert::IsTrue(node->nodeList_[1]->token_.value() == "-1", L"rhs.value : -1");
+			Assert::IsTrue(node->nodeList_[1]->token_.type() == TokenType::MINUS, L"rhs.type : -");
 		}
 	};
 
