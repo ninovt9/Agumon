@@ -21,7 +21,7 @@ namespace TestAgumon
 		TEST_METHOD(TestTokenType)
 		{
 			TokenType tokenType = TokenType::INTEGER;
-			tokenType = TokenType::INT;
+			tokenType = TokenType::INT_SIGN;
 			tokenType = TokenType::ASSIGN;
 			tokenType = TokenType::SEMICOLON;
 		}
@@ -36,8 +36,8 @@ namespace TestAgumon
 			Assert::IsTrue(token.type() == TokenType::DECIMAL, L"get token decimal:1.5 type ");
 			Assert::IsTrue(token.value() == "1.500000", L"get token decimal:1.5 value");
 
-			token = Token(TokenType::INT);
-			Assert::IsTrue(token.type() == TokenType::INT, L"get token int type");
+			token = Token(TokenType::INT_SIGN);
+			Assert::IsTrue(token.type() == TokenType::INT_SIGN, L"get token int type");
 			Assert::IsTrue(token.value() == "", L"get token int value");
 
 			token = Token(TokenType::ASSIGN);
@@ -52,7 +52,7 @@ namespace TestAgumon
 			Assert::IsFalse(dictionary.find("aaa"), L"find invalid:aaa in dictionary");
 			Assert::IsTrue(dictionary.find(';'), L"find token:semicolon of char in dictionary");
 
-			Assert::IsTrue(dictionary.token("int").type() == TokenType::INT, L"get key token:int");
+			Assert::IsTrue(dictionary.token("int").type() == TokenType::INT_SIGN, L"get key token:int");
 			Assert::IsTrue(dictionary.token(";").type() == TokenType::SEMICOLON, L"get key token:semicolon");
 			Assert::IsTrue(dictionary.token("aaa").type() == TokenType::INVAILD, L"error token");
 
@@ -95,10 +95,10 @@ namespace TestAgumon
 			Assert::IsTrue(token.value() == "var",					L"get token variable value");
 
 			scanner = Scanner("int");
-			Assert::IsTrue(scanner.getToken().type() == TokenType::INT,			L"get token int type");
+			Assert::IsTrue(scanner.getToken().type() == TokenType::INT_SIGN,			L"get token int type");
 
 			scanner = Scanner("double");
-			Assert::IsTrue(scanner.getToken().type() == TokenType::DOUBLE,		L"get token double type");
+			Assert::IsTrue(scanner.getToken().type() == TokenType::DOUBLE_SIGN,		L"get token double type");
 
 			scanner = Scanner("=");
 			Assert::IsTrue(scanner.getToken().type() == TokenType::ASSIGN,		L"get token assign sign");
@@ -129,18 +129,18 @@ namespace TestAgumon
 
 			// skip token
 			scanner = Scanner(" int");
-			Assert::IsTrue(scanner.getToken().type() == TokenType::INT,			L"skip token space ");
+			Assert::IsTrue(scanner.getToken().type() == TokenType::INT_SIGN,			L"skip token space ");
 
 			// peek token
 			scanner = Scanner("int");
-			Assert::IsTrue(scanner.peekToken().type() == TokenType::INT);
+			Assert::IsTrue(scanner.peekToken().type() == TokenType::INT_SIGN);
 
 			scanner = Scanner("=");
 			Assert::IsTrue(scanner.peekToken().type() == TokenType::ASSIGN);
 
 			// statement 
 			scanner = Scanner("int i = 0;");
-			Assert::IsTrue(scanner.getToken().type() == TokenType::INT,			L"assign[0] : int");
+			Assert::IsTrue(scanner.getToken().type() == TokenType::INT_SIGN,			L"assign[0] : int");
 			Assert::IsTrue(scanner.getToken().type() == TokenType::VARIABLE,	L"assign[1] : i");
 			Assert::IsTrue(scanner.getToken().type() == TokenType::ASSIGN,		L"assign[2] : =");
 			Assert::IsTrue(scanner.getToken().type() == TokenType::INTEGER,		L"assign[3] : 0");
@@ -150,7 +150,7 @@ namespace TestAgumon
 		TEST_METHOD(TestScanner_PeekToken)
 		{
 			auto scanner = Scanner("int i = 0;");
-			Assert::IsTrue(scanner.peekToken().type() == TokenType::INT,		L"int");
+			Assert::IsTrue(scanner.peekToken().type() == TokenType::INT_SIGN,		L"int");
 			scanner.getToken();
 			Assert::IsTrue(scanner.peekToken().type() == TokenType::VARIABLE,	L"i");
 			scanner.getToken();
@@ -188,7 +188,7 @@ namespace TestAgumon
 		public:
 			inline TokenType checkType()
 			{
-				return token_.type() == TokenType::INTEGER ? TokenType::INT : TokenType::DOUBLE;
+				return token_.type() == TokenType::INTEGER ? TokenType::INT_SIGN : TokenType::DOUBLE_SIGN;
 			}
 		};
 
@@ -254,16 +254,16 @@ namespace TestAgumon
 		TEST_METHOD(TestNode)
 		{
 			std::shared_ptr<Node> integerNode = std::make_shared<NumberNode>(NumberNode(Token(TokenType::INTEGER, 1), {}));
-			Assert::IsTrue(integerNode->checkType() == TokenType::INT, L"check type for number:integer");
+			Assert::IsTrue(integerNode->checkType() == TokenType::INT_SIGN, L"check type for number:integer");
 
 			std::shared_ptr<Node> decimalNode = std::make_shared<NumberNode>(NumberNode(Token(TokenType::DECIMAL, 1), {}));
-			Assert::IsTrue(decimalNode->checkType() == TokenType::DOUBLE, L"check type for number:decimal");
+			Assert::IsTrue(decimalNode->checkType() == TokenType::DOUBLE_SIGN, L"check type for number:decimal");
 
-			std::shared_ptr<Node> intNode = std::make_shared<TypeNode>(TypeNode(Token(TokenType::INT), {}));
-			Assert::IsTrue(intNode->checkType() == TokenType::INT, L"check type for type:int");
+			std::shared_ptr<Node> intNode = std::make_shared<TypeNode>(TypeNode(Token(TokenType::INT_SIGN), {}));
+			Assert::IsTrue(intNode->checkType() == TokenType::INT_SIGN, L"check type for type:int");
 
-			std::shared_ptr<Node> doubleNode = std::make_shared<TypeNode>(TypeNode(Token(TokenType::DOUBLE), {}));
-			Assert::IsTrue(doubleNode->checkType() == TokenType::DOUBLE, L"check type for type:double");
+			std::shared_ptr<Node> doubleNode = std::make_shared<TypeNode>(TypeNode(Token(TokenType::DOUBLE_SIGN), {}));
+			Assert::IsTrue(doubleNode->checkType() == TokenType::DOUBLE_SIGN, L"check type for type:double");
 
 			std::shared_ptr<Node> varNode = std::make_shared<VarNode>(VarNode(Token(TokenType::VARIABLE), {}));
 			Assert::IsTrue(varNode->checkType() == TokenType::VARIABLE, L"check type for variable");
@@ -281,8 +281,8 @@ namespace TestAgumon
 
 			inline bool isTypeToken()
 			{
-				return scanner_.peekToken().type() == TokenType::INT ||
-					scanner_.peekToken().type() == TokenType::DOUBLE;
+				return scanner_.peekToken().type() == TokenType::INT_SIGN ||
+					scanner_.peekToken().type() == TokenType::DOUBLE_SIGN;
 			}
 
 			inline bool isNumberToken()

@@ -11,7 +11,7 @@ namespace Agumon
 	//public:
 	//	Dictionary()
 	//	{
-	//		map_.insert(std::pair<std::string, Token>("int", Token(TokenType::INT)));
+	//		map_.insert(std::pair<std::string, Token>("int", Token(TokenType::INT_SIGN)));
 	//		map_.insert(std::pair<std::string, Token>(";", Token(TokenType::SEMICOLON)));
 	//	}
 	//public:

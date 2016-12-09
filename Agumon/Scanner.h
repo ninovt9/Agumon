@@ -16,8 +16,9 @@ namespace Agumon
 		INTEGER,
 		DECIMAL,
 
-		INT,
-		DOUBLE,
+		INT_SIGN,
+		DOUBLE_SIGN,
+		
 
 		VARIABLE,
 
@@ -56,8 +57,8 @@ namespace Agumon
 	public:
 		Dictionary()
 		{
-			map_.insert(std::pair<std::string, Token>("int", Token(TokenType::INT)));
-			map_.insert(std::pair<std::string, Token>("double", Token(TokenType::DOUBLE)));
+			map_.insert(std::pair<std::string, Token>("int", Token(TokenType::INT_SIGN)));
+			map_.insert(std::pair<std::string, Token>("double", Token(TokenType::DOUBLE_SIGN)));
 			map_.insert(std::pair<std::string, Token>(";", Token(TokenType::SEMICOLON)));
 			map_.insert(std::pair<std::string, Token>("=", Token(TokenType::ASSIGN)));
 			map_.insert(std::pair<std::string, Token>("+", Token(TokenType::PLUS)));
