@@ -168,186 +168,12 @@ namespace TestAgumon
 		TEST_METHOD(TestNode)
 		{
 			std::shared_ptr<Node> integerNode = std::make_shared<NumberNode>(NumberNode(Token(TokenType::INTEGER, 1), {}));
-			Assert::IsTrue(integerNode->checkType() == TokenType::INT_SIGN, L"check type for number:integer");
-
 			std::shared_ptr<Node> decimalNode = std::make_shared<NumberNode>(NumberNode(Token(TokenType::DECIMAL, 1), {}));
-			Assert::IsTrue(decimalNode->checkType() == TokenType::DOUBLE_SIGN, L"check type for number:decimal");
-
 			std::shared_ptr<Node> intNode = std::make_shared<TypeNode>(TypeNode(Token(TokenType::INT_SIGN), {}));
-			Assert::IsTrue(intNode->checkType() == TokenType::INT_SIGN, L"check type for type:int");
-
 			std::shared_ptr<Node> doubleNode = std::make_shared<TypeNode>(TypeNode(Token(TokenType::DOUBLE_SIGN), {}));
-			Assert::IsTrue(doubleNode->checkType() == TokenType::DOUBLE_SIGN, L"check type for type:double");
-
 			std::shared_ptr<Node> varNode = std::make_shared<VarNode>(VarNode(Token(TokenType::VARIABLE), {}));
-			Assert::IsTrue(varNode->checkType() == TokenType::VARIABLE, L"check type for variable");
+			std::shared_ptr<Node> boolNode = std::make_shared<BoolNode>(BoolNode(Token(TokenType::BOOL_SIGN), {}));
 		}
-
-
-		//class Parser
-		//{
-		//public:
-		//	Parser(std::string text) : scanner_(text)
-		//	{
-
-		//	}
-		//public:
-
-		//	inline bool isTypeToken()
-		//	{
-		//		return scanner_.peekToken().type() == TokenType::INT_SIGN ||
-		//			scanner_.peekToken().type() == TokenType::DOUBLE_SIGN;
-		//	}
-
-		//	inline bool isNumberToken()
-		//	{
-		//		return scanner_.peekToken().type() == TokenType::INTEGER || 
-		//			scanner_.peekToken().type() == TokenType::DECIMAL;
-		//	}
-
-		//	inline std::shared_ptr<Node> node()
-		//	{
-		//		if(isTypeToken())
-		//		{
-		//			return assignNode();
-		//		}
-		//		else if(isNumberToken())
-		//		{
-		//			return expNode2();
-		//		}
-		//		else
-		//		{
-		//			return nullptr; // error
-		//		}
-		//	}
-
-		//	inline std::shared_ptr<Node> assignNode()
-		//	{
-		//		std::shared_ptr<Node> type = std::make_shared<TypeNode>(TypeNode(scanner_.getToken(), {}));
-		//		std::shared_ptr<Node> var = std::make_shared<VarNode>(VarNode(scanner_.getToken(), {}));
-		//		Token assign = scanner_.getToken();
-		//		std::shared_ptr<Node> rhs = expNode2();
-
-		//		return std::make_shared<AssignNode>(AssignNode(assign, { var, rhs }));
-		//	}
-
-		//	inline std::shared_ptr<Node> termNode()
-		//	{
-		//		std::shared_ptr<Node> result = nullptr;
-
-		//		if (scanner_.peekToken().type() == TokenType::LEFT_PAR)
-		//		{
-		//			scanner_.getToken();
-		//			result = expNode2();
-		//			scanner_.getToken();
-		//		}
-		//		else if (scanner_.peekToken().type() == TokenType::PLUS)
-		//		{
-		//			scanner_.getToken();
-		//			result = termNode();
-		//		}
-		//		else if (scanner_.peekToken().type() == TokenType::MINUS)
-		//		{	
-		//			Token minus = scanner_.getToken();
-		//			std::shared_ptr<Node> lhs, rhs;
-		//			if (scanner_.peekToken().type() == TokenType::INTEGER)
-		//			{
-		//				lhs = std::make_shared<NumberNode>(NumberNode(Token(TokenType::INTEGER, 0), {}));
-		//			}
-		//			else if (scanner_.peekToken().type() == TokenType::DECIMAL)
-		//			{
-		//				lhs = std::make_shared<NumberNode>(NumberNode(Token(TokenType::DECIMAL, 0.0), {}));
-		//			}
-		//			
-		//			rhs = termNode();
-		//			result = std::make_shared<AddNode>(AddNode(minus, { lhs,  rhs}));
-		//		}
-		//		else
-		//		{
-		//			result = std::make_shared<NumberNode>(NumberNode(scanner_.getToken(), {}));
-		//		}
-
-		//		return result;
-		//	
-		//	}
-
-		//	inline std::shared_ptr<Node> expNode0()
-		//	{
-		//		std::shared_ptr<Node> result = termNode();
-
-		//		if (scanner_.peekToken().type() == TokenType::PLUS)
-		//		{
-		//			scanner_.getToken();
-		//			return std::make_shared<NumberNode>(NumberNode(scanner_.getToken(), {}));
-		//		}
-		//		else if (scanner_.peekToken().type() == TokenType::MINUS)
-		//		{
-		//			scanner_.getToken();
-		//			auto tmpToken = scanner_.getToken();
-		//			auto token = Token(tmpToken.type(), std::string("-") + tmpToken.value());
-		//			return std::make_shared<NumberNode>(NumberNode(token, {}));
-		//		}
-		//		else
-		//		{
-		//			return result;
-		//		}
-		//	}
-
-		//	inline std::shared_ptr<Node> expNode1()
-		//	{
-		//		std::shared_ptr<Node> lhs = termNode();
-
-		//		if (scanner_.peekToken().type() == TokenType::MUL)
-		//		{
-		//			Token mul = scanner_.getToken();
-		//			std::shared_ptr<Node> rhs = std::make_shared<NumberNode>(NumberNode(scanner_.getToken(), {}));
-		//			return std::make_shared<AddNode>(AddNode(mul, { lhs, rhs }));
-		//		}
-		//		else if (scanner_.peekToken().type() == TokenType::DIV)
-		//		{
-		//			Token div = scanner_.getToken();
-		//			std::shared_ptr<Node> rhs = std::make_shared<NumberNode>(NumberNode(scanner_.getToken(), {}));
-		//			return std::make_shared<AddNode>(AddNode(div, { lhs, rhs }));
-		//		}
-		//		else
-		//		{
-		//			return lhs;
-		//		}
-		//	}
-
-		//	inline std::shared_ptr<Node> expNode2()
-		//	{
-		//		std::shared_ptr<Node> lhs = expNode1();
-
-		//		if (scanner_.peekToken().type() == TokenType::PLUS)
-		//		{
-		//			Token plus = scanner_.getToken();
-		//			std::shared_ptr<Node> rhs = std::make_shared<NumberNode>(NumberNode(scanner_.getToken(), {}));
-		//			return std::make_shared<AddNode>(AddNode(plus, { lhs, rhs }));
-		//		}
-		//		else if (scanner_.peekToken().type() == TokenType::MINUS)
-		//		{
-		//			Token minus = scanner_.getToken();
-		//			std::shared_ptr<Node> rhs = std::make_shared<NumberNode>(NumberNode(scanner_.getToken(), {}));
-		//			return std::make_shared<AddNode>(AddNode(minus, { lhs, rhs }));
-		//		}
-		//		else
-		//		{
-		//			return lhs;
-		//		}
-
-
-		//	}
-
-		//	inline std::map<std::string, Token> symbolTable()
-		//	{
-		//		return symbolTable_;
-		//	}
-
-		//private:
-		//	Scanner scanner_;
-		//	std::map<std::string, Token> symbolTable_;
-		//};
 
 		TEST_METHOD(TestParser_AssignStatForInt)
 		{
@@ -382,7 +208,7 @@ namespace TestAgumon
 			auto parser = Parser(std::string("double var = 5.0;"));
 			auto node = parser.node();
 			Assert::IsTrue(node->token_.type() == TokenType::ASSIGN,					L"value : =");
-			Assert::IsTrue(node->nodeList_[0]->token_.type() == TokenType::VARIABLE,	L"type : double");
+			Assert::IsTrue(node->nodeList_[0]->token_.type() == TokenType::VARIABLE,	L"type : var");
 			Assert::IsTrue(node->nodeList_[1]->token_.type() == TokenType::DECIMAL,		L"rhs : integer:0");
 		}
 
@@ -474,6 +300,14 @@ namespace TestAgumon
 			auto parser = Parser(std::string("int var = -(-1);"));
 			auto node = parser.node();
 			Assert::IsTrue(node->nodeList_[1]->token_.type() == TokenType::MINUS, L"rhs.type : -");
+		}
+
+		TEST_METHOD(TestParser_AssignStatForBoolean)
+		{
+			auto parser = Parser(std::string("bool b = true;"));
+			auto node = parser.node();
+			Assert::IsTrue(node->nodeList_[0]->token_.type() == TokenType::VARIABLE, L"rhs.type : true");
+			Assert::IsTrue(node->nodeList_[1]->token_.type() == TokenType::TRUE, L"rhs.type : true");
 		}
 	};
 

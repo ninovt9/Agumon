@@ -3,7 +3,7 @@
 
 #include "Scanner.h"
 
-#include <memory>
+#include <memory> 
 
 namespace Agumon
 {
@@ -17,7 +17,6 @@ namespace Agumon
 		Node(Token token, std::vector<NodePtr> nodeList) :token_(token), nodeList_(nodeList) { ; }
 
 	public:
-		virtual TokenType						checkType() = 0;
 		virtual void							walk(std::map<std::string, Token>&) = 0;
 
 	public:
@@ -33,7 +32,6 @@ namespace Agumon
 		NumberNode(Token token, std::vector<NodePtr> nodeList) : Node(token, nodeList) { ; }
 
 	public:
-		TokenType								checkType();
 		inline void								walk(std::map<std::string, Token>& symbolTable) { ; }
 	};
 
@@ -45,7 +43,6 @@ namespace Agumon
 		TypeNode(Token token, std::vector<NodePtr> nodeList) : Node(token, nodeList) { ; }
 
 	public:
-		TokenType								checkType();
 		inline void							    walk(std::map<std::string, Token>& symbolTable) { ; }
 	};
 
@@ -57,7 +54,6 @@ namespace Agumon
 		VarNode(Token token, std::vector<NodePtr> nodeList) : Node(token, nodeList) { ; }
 
 	public:
-		TokenType								checkType();
 		inline void								walk(std::map<std::string, Token>& symbolTable) { ; }
 	};
 
@@ -68,11 +64,8 @@ namespace Agumon
 		AssignNode() = default;
 		AssignNode(Token token, std::vector<NodePtr> nodeList) : Node(token, nodeList) { ; }
 	public:
-		TokenType								checkType();
 		void									walk(std::map<std::string, Token>& symbolTable);
 	};
-
-
 
 
 	class AddNode : public Node
@@ -81,40 +74,22 @@ namespace Agumon
 		AddNode() = default;
 		AddNode(Token token, std::vector<NodePtr> nodeList) : Node(token, nodeList) { ; }
 	public:
-		TokenType								checkType();
 		inline void								walk(std::map<std::string, Token>& symbolTable) { ; }
 	};
 
-
-
-	inline TokenType NumberNode::checkType()
+	class BoolNode : public Node
 	{
-		return token_.type() == TokenType::INTEGER ? TokenType::INT_SIGN : TokenType::DOUBLE_SIGN;
-	}
+	public:
+		BoolNode() = default;
+		BoolNode(Token token, std::vector<NodePtr> nodeList) : Node(token, nodeList) { ; }
+	public:
+		inline void								walk(std::map<std::string, Token>& symbolTable) { ; }
 
-	inline TokenType TypeNode::checkType()
-	{
-		return token_.type();
-	}
-
-	inline TokenType VarNode::checkType()
-	{
-		return token_.type();
-	}
-
-	inline TokenType AssignNode::checkType()
-	{
-		return token_.type();
-	}
+	};
 
 	inline void AssignNode::walk(std::map<std::string, Token>& symbolTable)
 	{
 		symbolTable.insert({ nodeList_[0]->token_.value(), nodeList_[1]->token_ });
-	}
-
-	inline TokenType AddNode::checkType()
-	{
-		return token_.type();
 	}
 
 

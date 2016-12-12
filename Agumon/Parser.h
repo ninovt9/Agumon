@@ -33,7 +33,8 @@ namespace Agumon
 	inline bool Parser::isTypeToken()
 	{
 		return scanner_.peekToken().type() == TokenType::INT_SIGN ||
-			scanner_.peekToken().type() == TokenType::DOUBLE_SIGN;
+			scanner_.peekToken().type() == TokenType::DOUBLE_SIGN ||
+			scanner_.peekToken().type() == TokenType::BOOL_SIGN;
 	}
 
 	inline bool Parser::isNumberToken()

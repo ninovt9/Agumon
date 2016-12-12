@@ -62,6 +62,10 @@ std::shared_ptr<Node> Parser::termNode()
 		rhs = termNode();
 		result = std::make_shared<AddNode>(AddNode(minus, { lhs,  rhs }));
 	}
+	else if (scanner_.peekToken().type() == TokenType::TRUE)
+	{
+		result = std::make_shared<BoolNode>(BoolNode(scanner_.getToken(), {}));
+	}
 	else
 	{
 		result = std::make_shared<NumberNode>(NumberNode(scanner_.getToken(), {}));
