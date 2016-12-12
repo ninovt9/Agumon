@@ -57,6 +57,7 @@ namespace TestAgumon
 			Assert::IsTrue(dictionary.token("int").type() == TokenType::INT_SIGN, L"get key token:int");
 			Assert::IsTrue(dictionary.token(";").type() == TokenType::SEMICOLON, L"get key token:semicolon");
 			Assert::IsTrue(dictionary.token("aaa").type() == TokenType::INVAILD, L"error token");
+			Assert::IsTrue(dictionary.token("||").type() == TokenType::OR, L"get key token:or");
 
 		}
 
@@ -71,14 +72,6 @@ namespace TestAgumon
 			Assert::AreEqual(scanner.getChar(), '+', L"Get second char");
 			Assert::AreEqual(scanner.getChar(), '2', L"Get last char");
 			Assert::AreEqual(scanner.getChar(), '2', L"End of expression");
-
-			// peek char
-			scanner = Scanner("2+1");
-			Assert::AreEqual(scanner.peekChar(), '2', L"Peek first char");
-			scanner.getChar();
-			Assert::AreEqual(scanner.peekChar(), '+', L"Peek second char");
-			scanner.getChar();
-			Assert::AreEqual(scanner.peekChar(), '1', L"peek end of expression");
 
 			// get token
 			scanner = Scanner("50");
@@ -135,16 +128,12 @@ namespace TestAgumon
 			scanner = Scanner("false");
 			Assert::IsTrue(scanner.getToken().type() == TokenType::FALSE,		L"get token false");
 
+			scanner = Scanner("||");
+			Assert::IsTrue(scanner.getToken().type() == TokenType::OR,			L"get token or");
+
 			// skip token
 			scanner = Scanner(" int");
 			Assert::IsTrue(scanner.getToken().type() == TokenType::INT_SIGN,			L"skip token space ");
-
-			// peek token
-			scanner = Scanner("int");
-			Assert::IsTrue(scanner.peekToken().type() == TokenType::INT_SIGN);
-
-			scanner = Scanner("=");
-			Assert::IsTrue(scanner.peekToken().type() == TokenType::ASSIGN);
 
 			// statement 
 			scanner = Scanner("int i = 0;");
@@ -153,6 +142,29 @@ namespace TestAgumon
 			Assert::IsTrue(scanner.getToken().type() == TokenType::ASSIGN,		L"assign[2] : =");
 			Assert::IsTrue(scanner.getToken().type() == TokenType::INTEGER,		L"assign[3] : 0");
 			Assert::IsTrue(scanner.getToken().type() == TokenType::SEMICOLON,	L"assign[4] : ;");
+		}
+
+		TEST_METHOD(TestScanner_PeekChar)
+		{
+			Scanner scanner = Scanner("2+1");
+			Assert::AreEqual(scanner.peekChar(), '2', L"Peek first char");
+			scanner.getChar();
+			Assert::AreEqual(scanner.peekChar(), '+', L"Peek second char");
+			scanner.getChar();
+			Assert::AreEqual(scanner.peekChar(), '1', L"peek end of expression");
+
+			scanner = Scanner("2+1");
+			Assert::IsTrue(scanner.peekChar(2) == "2+", L"peek two char");
+			scanner.getChar();
+			scanner.getChar();
+			scanner.getChar();
+			Assert::IsTrue(scanner.peekChar(3) == "",   L"peek end of expression");
+
+
+			scanner = Scanner("2");
+			Assert::IsTrue(scanner.peekChar(2) == "", L"peek out of range");
+			Assert::IsTrue(scanner.peekChar(1) == "2", L"peek out of range");
+
 		}
 
 		TEST_METHOD(TestScanner_PeekToken)

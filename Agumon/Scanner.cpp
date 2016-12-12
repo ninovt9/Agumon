@@ -16,19 +16,20 @@ Token Scanner::getToken()
 
 	auto firstChar = peekChar();
 
-	if (isdigit(firstChar))
+	auto test = peekChar(2);
+
+	if (isdigit(peekChar()))  // isdigit(firstChar))
 	{
 		return getNumberToken();
 	}
-	else if (isalpha(firstChar))
+	else if (isalpha(peekChar()))  // isalpha(firstChar))
 	{
 		return getIdentifierToken();
 	}
-	else if (dict_.find(firstChar))
+	else if (dict_.find(firstChar) || dict_.find(peekChar(2)))
 	{
 		return getSignToken();
 	}
-
 	else
 	{
 		return Token(TokenType::INVAILD); // error

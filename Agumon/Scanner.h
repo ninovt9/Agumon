@@ -7,6 +7,7 @@
 #include <map>
 #include <string>
 #include <sstream>
+#include <functional>
 
 
 namespace Agumon
@@ -35,6 +36,7 @@ namespace Agumon
 		DIV,
 		LEFT_PAR,
 		RIGHT_PAR,
+		OR,
 
 		INVAILD,
 		
@@ -74,6 +76,7 @@ namespace Agumon
 			map_.insert(std::pair<std::string, Token>("/", Token(TokenType::DIV)));
 			map_.insert(std::pair<std::string, Token>("(", Token(TokenType::LEFT_PAR)));
 			map_.insert(std::pair<std::string, Token>(")", Token(TokenType::RIGHT_PAR)));
+			map_.insert(std::pair<std::string, Token>("||", Token(TokenType::OR)));
 		}
 	public:
 		Token						token(std::string key);
@@ -112,8 +115,10 @@ namespace Agumon
 	public:
 		char						getChar();
 		char						peekChar();
+		std::string					peekChar(int size);
 		Token						getToken();
 		bool						isEndOfExp();
+		bool						isOutOfRange(int size);
 
 	public:
 		inline Token peekToken()
@@ -138,18 +143,44 @@ namespace Agumon
 	{
 		return isEndOfExp() ? text_[text_.size() - 1] : text_[index_++];
 	}
+
 	inline char Scanner::peekChar()
 	{
 		return isEndOfExp() ? text_[text_.size() - 1] : text_[index_];
 	}
+
+	inline std::string Scanner::peekChar(int size)
+	{
+		return isEndOfExp() || isOutOfRange(size) ? std::string("") :
+			std::string(text_.begin() + index_, text_.begin() + index_ + size);
+	}
+
 	inline bool Scanner::isEndOfExp()
 	{
 		return index_ >= text_.size() ? true : false;
 	}
+
+	inline bool	Scanner::isOutOfRange(int size)
+	{
+		return index_ + size > text_.size();
+	}
+
 	inline Token Scanner::getSignToken()
 	{
-		return dict_.token(getChar());
+		if (dict_.find(peekChar()))
+		{
+			return dict_.token(getChar());
+		}
+		else
+		{
+			std::string buffer;
+			buffer.push_back(getChar());
+			buffer.push_back(getChar());
+			return dict_.token(buffer);
+		}
+		
 	}
+
 	inline Token Scanner::getIdentifierToken()
 	{
 		std::string value;
@@ -157,12 +188,14 @@ namespace Agumon
 			{ value.push_back(getChar()); }
 		return dict_.find(value) ? dict_.token(value) : Token(TokenType::VARIABLE, value);
 	}
+
 	inline std::string Scanner::getIntegerValue()
 	{
 		std::string value;
 		while (isdigit(peekChar()) && !isEndOfExp()) { value.push_back(getChar()); }
 		return value;
 	}
+
 	inline Token Scanner::getNumberToken()
 	{
 		std::string value = getIntegerValue();
