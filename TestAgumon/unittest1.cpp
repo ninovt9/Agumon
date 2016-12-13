@@ -152,19 +152,19 @@ namespace TestAgumon
 			Assert::AreEqual(scanner.peekChar(), '+', L"Peek second char");
 			scanner.getChar();
 			Assert::AreEqual(scanner.peekChar(), '1', L"peek end of expression");
+		}
 
-			scanner = Scanner("2+1");
+		TEST_METHOD(TestScanner_PeekChar_Multiple)
+		{
+			Scanner scanner = Scanner("2+");
 			Assert::IsTrue(scanner.peekChar(2) == "2+", L"peek two char");
-			scanner.getChar();
-			scanner.getChar();
-			scanner.getChar();
-			Assert::IsTrue(scanner.peekChar(3) == "",   L"peek end of expression");
 
+			scanner = Scanner("");
+			Assert::IsTrue(scanner.peekChar(2) == "", L"end of expression");
 
 			scanner = Scanner("2");
-			Assert::IsTrue(scanner.peekChar(2) == "", L"peek out of range");
-			Assert::IsTrue(scanner.peekChar(1) == "2", L"peek out of range");
-
+			Assert::IsTrue(scanner.peekChar(2) == "", L"out of range:2");
+			Assert::IsTrue(scanner.peekChar(1) == "2", L"out of range:1");
 		}
 
 		TEST_METHOD(TestScanner_PeekToken)
@@ -321,6 +321,41 @@ namespace TestAgumon
 			Assert::IsTrue(node->nodeList_[0]->token_.type() == TokenType::VARIABLE, L"rhs.type : true");
 			Assert::IsTrue(node->nodeList_[1]->token_.type() == TokenType::TRUE, L"rhs.type : true");
 		}
-	};
 
+		TEST_METHOD(TestParser_AssignStatForOr)
+		{
+			auto parser = Parser(std::string("bool o = true || false;"));
+			auto node = parser.node();
+			Assert::IsTrue(node->nodeList_[0]->token_.type() == TokenType::VARIABLE, L"lhs.type : var:o");
+			Assert::IsTrue(node->nodeList_[1]->token_.type() == TokenType::OR, L"rhs.type : or");
+
+			node = node->nodeList_[1];
+			Assert::IsTrue(node->nodeList_[0]->token_.type() == TokenType::TRUE , L"lhs.type : true");
+			Assert::IsTrue(node->nodeList_[1]->token_.type() == TokenType::FALSE, L"lhs.type : false");
+		}
+
+		TEST_METHOD(TestParser_AssignStatForSyntaxErrorMissIden)
+		{
+			auto parser = Parser(std::string("int = 0;"));
+			auto node = parser.node();
+			Assert::IsTrue(parser.isError(), L"in the errorlist");
+			Assert::IsTrue(parser.error("SyntaxError: missing identifier"), L"msg matches");
+		}
+
+		TEST_METHOD(TestParser_AssignStatForSyntaxErrorTypeMissmatch)
+		{
+			auto parser = Parser(std::string("int i = true;"));
+			auto node = parser.node();
+			Assert::IsTrue(parser.isError(), L"int : bool");
+
+			parser = Parser(std::string("double i = true;"));
+			node = parser.node();
+			Assert::IsTrue(parser.isError(), L"double : bool");
+
+			parser = Parser(std::string("int i = 1 + 2"));
+			node = parser.node();
+			Assert::IsFalse(parser.isError(), L"int : add)");
+
+		}
+	};
 }

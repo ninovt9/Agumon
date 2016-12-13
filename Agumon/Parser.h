@@ -3,6 +3,8 @@
 #include "Scanner.h"
 #include "Node.h"
 
+#include <algorithm>
+
 namespace Agumon
 {
 	class Parser
@@ -23,10 +25,19 @@ namespace Agumon
 
 	public:
 		std::map<std::string, Token>		symbolTable();
+		inline bool								isError()
+		{
+			return errorList_.size() > 0 ? true : false;
+		}
+		inline bool error(std::string msg)
+		{
+			return std::find(errorList_.begin(), errorList_.end(), msg) != errorList_.end();
+		}
 
 	private:
 		Scanner								scanner_;
 		std::map<std::string, Token>		symbolTable_;
+		std::vector<std::string>			errorList_;
 	};
 
 

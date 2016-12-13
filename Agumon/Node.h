@@ -18,6 +18,10 @@ namespace Agumon
 
 	public:
 		virtual void							walk(std::map<std::string, Token>&) = 0;
+		virtual TokenType checkType()
+		{
+			return TokenType::INVAILD;
+		}
 
 	public:
 		Token									token_;
@@ -33,6 +37,17 @@ namespace Agumon
 
 	public:
 		inline void								walk(std::map<std::string, Token>& symbolTable) { ; }
+		inline TokenType checkType()
+		{
+			if (token_.type() == TokenType::INTEGER)
+			{
+				return TokenType::INT_SIGN;
+			}
+			else
+			{
+				return TokenType::DOUBLE_SIGN;
+			}
+		}
 	};
 
 
@@ -75,6 +90,30 @@ namespace Agumon
 		AddNode(Token token, std::vector<NodePtr> nodeList) : Node(token, nodeList) { ; }
 	public:
 		inline void								walk(std::map<std::string, Token>& symbolTable) { ; }
+		inline TokenType checkType()
+		{
+			auto lhs = nodeList_[0];
+			auto rhs = nodeList_[1];
+			// return (lhs->checkType() == rhs->checkType());
+			if (lhs->checkType() == rhs->checkType())
+			{
+				switch (lhs->checkType())
+				{
+				case TokenType::INTEGER:
+					return TokenType::INT_SIGN;
+					break;
+				case TokenType::DECIMAL:
+					return TokenType::DOUBLE_SIGN;
+					break;
+				//default:
+				//	break;
+				}
+			}
+			else
+			{
+				return TokenType::INVAILD;
+			}
+		}
 	};
 
 	class BoolNode : public Node
@@ -82,6 +121,16 @@ namespace Agumon
 	public:
 		BoolNode() = default;
 		BoolNode(Token token, std::vector<NodePtr> nodeList) : Node(token, nodeList) { ; }
+	public:
+		inline void								walk(std::map<std::string, Token>& symbolTable) { ; }
+
+	};
+
+	class OrNode : public Node
+	{
+	public:
+		OrNode() = default;
+		OrNode(Token token, std::vector<NodePtr> nodeList) : Node(token, nodeList) { ; }
 	public:
 		inline void								walk(std::map<std::string, Token>& symbolTable) { ; }
 

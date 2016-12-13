@@ -23,11 +23,41 @@ std::shared_ptr<Node> Parser::node()
 std::shared_ptr<Node> Parser::assignNode()
 {
 	std::shared_ptr<Node> type = std::make_shared<TypeNode>(TypeNode(scanner_.getToken(), {}));
-	std::shared_ptr<Node> var = std::make_shared<VarNode>(VarNode(scanner_.getToken(), {}));
+
+	std::shared_ptr<Node> var = nullptr;
+	if (scanner_.peekToken().type() == TokenType::VARIABLE)
+	{
+		var = std::make_shared<VarNode>(VarNode(scanner_.getToken(), {}));
+	}
+	else
+	{
+		errorList_.push_back("SyntaxError: missing identifier");
+	}
+
+
 	Token assign = scanner_.getToken();
 	std::shared_ptr<Node> rhs = expNode2();
 
+	// checkType()
+	//if (type->token_.type() != rhs->checkType())
+	//{
+	//	errorList_.push_back("SyntanError: type mismatch");
+	//	return nullptr;
+	//}
+	//else
+	//{
+	//	return std::make_shared<AssignNode>(AssignNode(assign, { var, rhs }));
+	//}
+
+	// checkType()
+	if (type->token_.type() != rhs->checkType())
+	{
+		errorList_.push_back("SyntanError: type mismatch");
+	}
+
+
 	return std::make_shared<AssignNode>(AssignNode(assign, { var, rhs }));
+	
 }
 
 
@@ -113,6 +143,13 @@ inline std::shared_ptr<Node> Parser::expNode2()
 		Token minus = scanner_.getToken();
 		std::shared_ptr<Node> rhs = std::make_shared<NumberNode>(NumberNode(scanner_.getToken(), {}));
 		return std::make_shared<AddNode>(AddNode(minus, { lhs, rhs }));
+	}
+	else if (scanner_.peekToken().type() == TokenType::OR)
+	{
+		Token or = scanner_.getToken();
+		std::shared_ptr<Node> rhs = std::make_shared<BoolNode>(BoolNode(scanner_.getToken(), {}));
+		return std::make_shared<OrNode>(OrNode(or, { lhs, rhs }));
+
 	}
 	else
 	{
