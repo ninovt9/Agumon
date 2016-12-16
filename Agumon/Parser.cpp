@@ -49,11 +49,11 @@ std::shared_ptr<Node> Parser::assignNode()
 	//	return std::make_shared<AssignNode>(AssignNode(assign, { var, rhs }));
 	//}
 
-	// checkType()
-	if (type->token_.type() != rhs->checkType())
-	{
-		errorList_.push_back("SyntanError: type mismatch");
-	}
+	//// checkType()
+	//if (type->token_.type() != rhs->checkType())
+	//{
+	//	errorList_.push_back("SyntanError: type mismatch");
+	//}
 
 
 	return std::make_shared<AssignNode>(AssignNode(assign, { var, rhs }));
