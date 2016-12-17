@@ -182,10 +182,190 @@ namespace TestAgumon
 
 
 
+		class AST
+		{
+		public:
+			AST(Token token) : token_(token) { ; }
+			AST(Token token, std::vector<Token> tokenList) : token_(token)
+			{
+				for (auto t : tokenList)
+				{
+					childrenList_.push_back(AST(t));
+				}
+			}
+		public:
+			inline TokenType				type()			{ return token_.type(); }
+			inline std::vector<AST>			childrenList()	{ return childrenList_; }
+			inline void						addChildren(Token token) { childrenList_.push_back(AST(token)); }
+			inline void						addChildren(AST ast) { childrenList_.push_back(ast); }
+
+		private:
+			Token							token_;
+			std::vector<AST>				childrenList_;
+		};
+
+
+		TEST_METHOD(TestAST_Init)
+		{
+			AST ast = AST(Token(TokenType::INVAILD));
+			Assert::IsTrue(ast.type() == TokenType::INVAILD, L"root type : invaild");
+
+			ast = AST(Token(TokenType::INTEGER, 1));
+			Assert::IsTrue(ast.type() == TokenType::INTEGER, L"root type : integer");
+
+			ast = AST(Token(TokenType::ASSIGN), { Token(TokenType::INTEGER, 1), Token(TokenType::INTEGER, 2) });
+			auto childrenList = ast.childrenList();
+			Assert::IsTrue(childrenList[0].type() == TokenType::INTEGER, L"childList.node[0] : integer");
+		}
+
+		TEST_METHOD(TestAST_AddChildren)
+		{
+			AST ast = AST(Token(TokenType::DECIMAL, 0.0));
+			ast.addChildren(Token(TokenType::ASSIGN));
+			auto childrenList = ast.childrenList();
+			Assert::AreEqual(childrenList.size(), size_t(1), L"childList.size : 1");
+			Assert::IsTrue(childrenList[0].type() == TokenType::ASSIGN, L"childList.node[0] : assign");
+
+			ast.addChildren(AST(Token(TokenType::INVAILD)));
+			childrenList = ast.childrenList();
+			Assert::IsTrue(childrenList[1].type() == TokenType::INVAILD, L"childList.node[1] : invaild");
+		}
 
 
 
 
+
+		class Parser
+		{
+		public:
+			Parser(std::string text) : scanner_(text) { ; }
+
+		public:
+			AST node() 
+			{
+				if (isTypeSign())
+				{
+					return assignNode();
+				}
+				else
+				{
+					return expNode();
+				}
+			}
+
+			inline bool isTypeSign()
+			{
+				return scanner_.peekToken().type() == TokenType::INT_SIGN ||
+					scanner_.peekToken().type() == TokenType::DOUBLE_SIGN ||
+					scanner_.peekToken().type() == TokenType::BOOL_SIGN;
+			}
+
+			inline AST assignNode()
+			{
+				auto type = scanner_.getToken();
+				auto var = scanner_.getToken();
+				auto assign = scanner_.getToken();
+				auto lhs = scanner_.getToken();
+
+				AST node = AST(assign);
+				node.addChildren(type);
+				node.addChildren(var);
+				node.addChildren(lhs);
+
+				return node;
+			}
+
+			inline AST expNode()
+			{
+
+				Token rhs, op;
+
+				auto lhs = expNode1(); // termNode();
+				
+				if (scanner_.peekToken().type() == TokenType::PLUS || scanner_.peekToken().type() == TokenType::MINUS)
+				{
+					op = scanner_.getToken();
+					rhs = scanner_.getToken();
+				}
+
+				AST node = AST(op);
+				node.addChildren(lhs);
+				node.addChildren(rhs);
+
+				return node;
+
+			}
+
+
+			inline AST expNode1()
+			{
+				//Token rhs, op;
+
+				auto lhs = termNode(); // AST(scanner_.getToken());
+
+				if (scanner_.peekToken().type() == TokenType::MUL || scanner_.peekToken().type() == TokenType::DIV)
+				{
+					//auto op = scanner_.getToken();
+					//auto rhs = scanner_.getToken();
+					//AST node = AST(scanner_.getToken());	// op
+					//node.addChildren(lhs);
+					//node.addChildren(scanner_.getToken());	// 
+					//return node;
+
+					auto op = scanner_.getToken();
+					auto rhs = scanner_.getToken();
+					AST node = AST(op, { lhs, rhs });
+					return node;
+				
+				}
+				else
+				{
+					return lhs;
+				}
+			}
+
+			inline AST termNode()
+			{
+				return AST(scanner_.getToken());
+			}
+
+
+		private:
+			Scanner scanner_;
+		};
+
+		TEST_METHOD(TestParser_AssignStat)
+		{
+			Parser parser = Parser("int i = 2");
+			auto node = parser.node();
+			Assert::IsTrue(node.type() == TokenType::ASSIGN, L"root type : assign");
+			Assert::IsTrue(node.childrenList()[0].type() == TokenType::INT_SIGN, L"childList[0] type : int_sign");
+			Assert::IsTrue(node.childrenList()[1].type() == TokenType::VARIABLE, L"childList[1] type : variable");
+			Assert::IsTrue(node.childrenList()[2].type() == TokenType::INTEGER,  L"childList[2] type : integer");
+		}
+
+		TEST_METHOD(TestParser_MinusExp)
+		{
+			Parser parser = Parser("1-2");
+			auto node = parser.node();
+			Assert::IsTrue(node.type() == TokenType::MINUS, L"root type : minus");
+			Assert::IsTrue(node.childrenList()[0].type() == TokenType::INTEGER, L"childList[0] type : integer");
+			Assert::IsTrue(node.childrenList()[1].type() == TokenType::INTEGER, L"childList[1] type : integer");
+		}
+
+		TEST_METHOD(TestParser_PlusExp)
+		{
+			Parser parser = Parser("1+2");
+			auto node = parser.node();
+			Assert::IsTrue(node.type() == TokenType::PLUS, L"root type : plus");
+		}
+
+		//TEST_METHOD(TestParser_Exp)
+		//{
+		//	Parser parser = Parser("1*2+2");
+		//	auto node = parser.node();
+		//	Assert::IsTrue(node.type() == TokenType::PLUS, L"root type : plus");
+		//}
 
 
 

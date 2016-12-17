@@ -45,6 +45,7 @@ namespace Agumon
 	class Token
 	{
 	public:
+		Token() : type_(TokenType::INVAILD), value_("") {  }
 		Token(TokenType type, int value) : type_(type), value_(std::to_string(value)) { }
 		Token(TokenType type, double value) : type_(type), value_(std::to_string(value)) { }
 		Token(TokenType type, std::string value = "") : type_(type), value_(value) { }
