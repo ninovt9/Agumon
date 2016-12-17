@@ -199,6 +199,7 @@ namespace TestAgumon
 		{
 		public:
 			AST(Token token) : token_(token) { ; }
+			AST(Token token, std::vector<AST> childrenList) : token_(token), childrenList_(childrenList) { ; }
 			AST(Token token, std::vector<Token> tokenList) : token_(token)
 			{
 				for (auto t : tokenList)
@@ -206,7 +207,9 @@ namespace TestAgumon
 					childrenList_.push_back(AST(t));
 				}
 			}
+			
 		public:
+			inline Token					token()			{ return token_; }
 			inline TokenType				type()			{ return token_.type(); }
 			inline std::vector<AST>			childrenList()	{ return childrenList_; }
 			inline void						addChildren(Token token) { childrenList_.push_back(AST(token)); }
@@ -226,9 +229,9 @@ namespace TestAgumon
 			ast = AST(Token(TokenType::INTEGER, 1));
 			Assert::IsTrue(ast.type() == TokenType::INTEGER, L"root type : integer");
 
-			ast = AST(Token(TokenType::ASSIGN), { Token(TokenType::INTEGER, 1), Token(TokenType::INTEGER, 2) });
-			auto childrenList = ast.childrenList();
-			Assert::IsTrue(childrenList[0].type() == TokenType::INTEGER, L"childList.node[0] : integer");
+			//ast = AST(Token(TokenType::ASSIGN), { Token(TokenType::INTEGER, 1), Token(TokenType::INTEGER, 2) });
+			//auto childrenList = ast.childrenList();
+			//Assert::IsTrue(childrenList[0].type() == TokenType::INTEGER, L"childList.node[0] : integer");
 		}
 
 		TEST_METHOD(TestAST_AddChildren)
@@ -279,33 +282,25 @@ namespace TestAgumon
 
 			inline AST assignNode()
 			{
-				auto type = getToken();
-				auto var = getToken();
-				auto assign = getToken();
-				auto rhs = getToken();
+				auto type = termNode();
+				auto var = termNode();
+				auto assign = termNode();
+				auto rhs = termNode();
 
-				return AST(assign, { type, var, rhs });
+				return AST(assign.token(), std::vector<AST>{type, var, rhs});
 			}
 
 			inline AST expNode()
 			{
-
-				Token rhs, op;
-
-				auto lhs = expNode1(); // termNode();
+				auto lhs = expNode1();
 				
 				if (peekToken().type() == TokenType::PLUS || peekToken().type() == TokenType::MINUS)
 				{
-					op = getToken();
-					rhs = getToken();
+					auto op = termNode();
+					auto rhs = termNode();
+
+					return AST(op.token(), std::vector<AST>{lhs, rhs});
 				}
-
-				AST node = AST(op);
-				node.addChildren(lhs);
-				node.addChildren(rhs);
-
-				return node;
-
 			}
 
 
@@ -315,12 +310,9 @@ namespace TestAgumon
 
 				if (peekToken().type() == TokenType::MUL || peekToken().type() == TokenType::DIV)
 				{
-					auto op = getToken();
-					auto rhs = getToken();
-					AST node = AST(getToken());	// op
-					node.addChildren(lhs);
-					node.addChildren(getToken());	// 
-					return node;		
+					auto op = termNode();
+					auto rhs = termNode();
+					return AST(op.token(), std::vector<AST>{lhs, rhs});
 				}
 				else
 				{
@@ -368,12 +360,19 @@ namespace TestAgumon
 			Assert::IsTrue(node.type() == TokenType::PLUS, L"root type : plus");
 		}
 
-		//TEST_METHOD(TestParser_Exp)
-		//{
-		//	Parser parser = Parser("1*2+2");
-		//	auto node = parser.node();
-		//	Assert::IsTrue(node.type() == TokenType::PLUS, L"root type : plus");
-		//}
+		TEST_METHOD(TestParser_MixedExp)
+		{
+			Parser parser = Parser("1*2+2");
+			auto node = parser.node();
+			Assert::IsTrue(node.type() == TokenType::PLUS, L"root type : plus");
+			
+			node = node.childrenList()[0];	// 1*2
+			Assert::IsTrue(node.type() == TokenType::MUL, L"root type : mul");
+
+			node = Parser("1-2*3+5").node();
+			Assert::IsTrue(node.type() == TokenType::MINUS, L"root type : minus");
+		}
+
 
 
 
