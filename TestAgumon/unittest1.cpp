@@ -3,8 +3,8 @@
 
 #include "Scanner.h"
 #include "Dictionary.h"
-#include "Node.h"
-#include "Parser.h"
+// #include "Node.h"
+// #include "Parser.h"
 
 #include <map>
 #include <vector>
@@ -177,170 +177,254 @@ namespace TestAgumon
 			Assert::IsTrue(scanner.peekToken().type() == TokenType::ASSIGN,		L"=");
 		}
 
-		TEST_METHOD(TestNode)
-		{
-			std::shared_ptr<Node> integerNode = std::make_shared<NumberNode>(NumberNode(Token(TokenType::INTEGER, 1), {}));
-			std::shared_ptr<Node> decimalNode = std::make_shared<NumberNode>(NumberNode(Token(TokenType::DECIMAL, 1), {}));
-			std::shared_ptr<Node> intNode = std::make_shared<TypeNode>(TypeNode(Token(TokenType::INT_SIGN), {}));
-			std::shared_ptr<Node> doubleNode = std::make_shared<TypeNode>(TypeNode(Token(TokenType::DOUBLE_SIGN), {}));
-			std::shared_ptr<Node> varNode = std::make_shared<VarNode>(VarNode(Token(TokenType::VARIABLE), {}));
-			std::shared_ptr<Node> boolNode = std::make_shared<BoolNode>(BoolNode(Token(TokenType::BOOL_SIGN), {}));
-		}
-
-		TEST_METHOD(TestParser_AssignStatForInt)
-		{
-			auto parser = Parser(std::string("int i = 0;"));
-			auto node = parser.node();
-			Assert::IsTrue(node->token_.type() == TokenType::ASSIGN, L"syntax tree assign -> =");
-			Assert::IsTrue(node->nodeList_[0]->token_.type() == TokenType::VARIABLE, L"syntax tree var -> variable:i");
-			Assert::IsTrue(node->nodeList_[1]->token_.type() == TokenType::INTEGER, L"syntax tree value -> integer:0");
-		}
-
-		TEST_METHOD(TestParser_DefinedVariable)
-		{
-			auto parser = Parser(std::string("int i = 0;"));
-			auto node = parser.node();
-			auto symbolTable = parser.symbolTable();
-			node->walk(symbolTable);
-			Assert::IsTrue(symbolTable.find("i") != symbolTable.end(),					L"var.name : i");
-		}
-
-		TEST_METHOD(TestParser_AddStat)
-		{
-			auto parser = Parser(std::string("1 + 1"));
-			auto node = parser.node();
-			Assert::IsTrue(node->token_.type() == TokenType::PLUS,						L"value : +");
-			Assert::IsTrue(node->nodeList_[0]->token_.type() == TokenType::INTEGER,		L"lhs : 1");
-			Assert::IsTrue(node->nodeList_[1]->token_.type() == TokenType::INTEGER,		L"rhs : 1");
-		}
 
 
-		TEST_METHOD(TestParser_AssignStatForDouble)
-		{
-			auto parser = Parser(std::string("double var = 5.0;"));
-			auto node = parser.node();
-			Assert::IsTrue(node->token_.type() == TokenType::ASSIGN,					L"value : =");
-			Assert::IsTrue(node->nodeList_[0]->token_.type() == TokenType::VARIABLE,	L"type : var");
-			Assert::IsTrue(node->nodeList_[1]->token_.type() == TokenType::DECIMAL,		L"rhs : integer:0");
-		}
 
-		TEST_METHOD(TestParser_AssignStatForAdd)
-		{
-			auto parser = Parser(std::string("int var = 1 + 2;"));
-			auto node = parser.node();
-			Assert::IsTrue(node->token_.type() == TokenType::ASSIGN,					L"value : =");
-			Assert::IsTrue(node->nodeList_[1]->token_.type() == TokenType::PLUS,		L"rhs.value : +");
-		}
 
-		TEST_METHOD(TestParser_AssignStatForSub)
-		{
-			auto parser = Parser(std::string("int var = 1 - 2;"));
-			auto node = parser.node();
-			Assert::IsTrue(node->token_.type() == TokenType::ASSIGN, L"value : =");
-			Assert::IsTrue(node->nodeList_[1]->token_.type() == TokenType::MINUS,		L"rhs.value : -");
-		}
 
-		TEST_METHOD(TestParser_AssignStatForMul)
-		{
-			auto parser = Parser(std::string("int var = 1 * 2;"));
-			auto node = parser.node();
-			Assert::IsTrue(node->token_.type() == TokenType::ASSIGN, L"value : =");
-			Assert::IsTrue(node->nodeList_[1]->token_.type() == TokenType::MUL, L"rhs.value : *");
-		}
 
-		TEST_METHOD(TestParser_AssignStatForDiv)
-		{
-			auto parser = Parser(std::string("int var = 1 / 2;"));
-			auto node = parser.node();
-			Assert::IsTrue(node->token_.type() == TokenType::ASSIGN, L"value : =");
-			Assert::IsTrue(node->nodeList_[1]->token_.type() == TokenType::DIV, L"rhs.value : /");
-		}
 
-		TEST_METHOD(TestParser_AssignStatForAddAndSub)
-		{
-			auto parser = Parser(std::string("int var = 1 * 2 + 3;"));
-			auto node = parser.node();
-			Assert::IsTrue(node->token_.type() == TokenType::ASSIGN, L"value : =");
-			Assert::IsTrue(node->nodeList_[1]->token_.type() == TokenType::PLUS, L"rhs.value : +");
-		}
 
-		TEST_METHOD(TestParser_AssignStatForAddAndDiv)
-		{
-			auto parser = Parser(std::string("int var = 1 + 2 / 3;"));
-			auto node = parser.node();
-			Assert::IsTrue(node->token_.type() == TokenType::ASSIGN, L"value : =");
-			Assert::IsTrue(node->nodeList_[1]->token_.type() == TokenType::PLUS, L"rhs.value : +");
-		}
 
-		TEST_METHOD(TestParser_AssignStatForParenthesis)
-		{
-			auto parser = Parser(std::string("int var = (1 + 2) * 3;"));
-			auto node = parser.node();
-			Assert::IsTrue(node->token_.type() == TokenType::ASSIGN, L"value : =");
-			Assert::IsTrue(node->nodeList_[1]->token_.type() == TokenType::MUL, L"rhs.value : *");
-		}
 
-		TEST_METHOD(TestParser_AssignStatForPositiveNumber)
-		{
-			auto parser = Parser(std::string("int var = +1;"));
-			auto node = parser.node();
-			Assert::IsTrue(node->token_.type() == TokenType::ASSIGN, L"value : =");
-			Assert::IsTrue(node->nodeList_[1]->token_.type() == TokenType::INTEGER, L"rhs.value : integer:1");
-		}
 
-		TEST_METHOD(TestParser_AssignStatForNegativeNumber)
-		{
-			auto parser = Parser(std::string("int var = -1;"));
-			auto node = parser.node();
-			Assert::IsTrue(node->token_.type() == TokenType::ASSIGN, L"value : =");
-			Assert::IsTrue(node->nodeList_[1]->token_.type() == TokenType::MINUS, L"rhs.type : -");
-		}
 
-		TEST_METHOD(TestParser_AssignStatForPositiveNumberAndParenthesis)
-		{
-			auto parser = Parser(std::string("int var = (+1);"));
-			auto node = parser.node();
-			Assert::IsTrue(node->nodeList_[1]->token_.type() == TokenType::INTEGER, L"rhs.type : integer:1");
 
-			parser = Parser(std::string("int var = -(+1);"));
-			node = parser.node();
-			Assert::IsTrue(node->nodeList_[1]->token_.type() == TokenType::MINUS, L"rhs.type : -");
-		}
 
-		TEST_METHOD(TestParser_AssignStatForNegativeNumberAndParenthesis)
-		{
-			auto parser = Parser(std::string("int var = -(-1);"));
-			auto node = parser.node();
-			Assert::IsTrue(node->nodeList_[1]->token_.type() == TokenType::MINUS, L"rhs.type : -");
-		}
 
-		TEST_METHOD(TestParser_AssignStatForBoolean)
-		{
-			auto parser = Parser(std::string("bool b = true;"));
-			auto node = parser.node();
-			Assert::IsTrue(node->nodeList_[0]->token_.type() == TokenType::VARIABLE, L"rhs.type : true");
-			Assert::IsTrue(node->nodeList_[1]->token_.type() == TokenType::TRUE, L"rhs.type : true");
-		}
 
-		TEST_METHOD(TestParser_AssignStatForOr)
-		{
-			auto parser = Parser(std::string("bool o = true || false;"));
-			auto node = parser.node();
-			Assert::IsTrue(node->nodeList_[0]->token_.type() == TokenType::VARIABLE, L"lhs.type : var:o");
-			Assert::IsTrue(node->nodeList_[1]->token_.type() == TokenType::OR, L"rhs.type : or");
 
-			node = node->nodeList_[1];
-			Assert::IsTrue(node->nodeList_[0]->token_.type() == TokenType::TRUE , L"lhs.type : true");
-			Assert::IsTrue(node->nodeList_[1]->token_.type() == TokenType::FALSE, L"lhs.type : false");
-		}
 
-		TEST_METHOD(TestParser_AssignStatForSyntaxErrorMissIden)
-		{
-			auto parser = Parser(std::string("int = 0;"));
-			auto node = parser.node();
-			Assert::IsTrue(parser.isError(), L"in the errorlist");
-			Assert::IsTrue(parser.error("SyntaxError: missing identifier"), L"msg matches");
-		}
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+		/* old node */
+
+		//TEST_METHOD(TestNode)
+		//{
+		//	std::shared_ptr<Node> integerNode = std::make_shared<NumberNode>(NumberNode(Token(TokenType::INTEGER, 1), {}));
+		//	std::shared_ptr<Node> decimalNode = std::make_shared<NumberNode>(NumberNode(Token(TokenType::DECIMAL, 1), {}));
+		//	std::shared_ptr<Node> intNode = std::make_shared<TypeNode>(TypeNode(Token(TokenType::INT_SIGN), {}));
+		//	std::shared_ptr<Node> doubleNode = std::make_shared<TypeNode>(TypeNode(Token(TokenType::DOUBLE_SIGN), {}));
+		//	std::shared_ptr<Node> varNode = std::make_shared<VarNode>(VarNode(Token(TokenType::VARIABLE), {}));
+		//	std::shared_ptr<Node> boolNode = std::make_shared<BoolNode>(BoolNode(Token(TokenType::BOOL_SIGN), {}));
+		//}
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+		/* old parser */
+
+
+		//TEST_METHOD(TestParser_AssignStatForInt)
+		//{
+		//	auto parser = Parser(std::string("int i = 0;"));
+		//	auto node = parser.node();
+		//	Assert::IsTrue(node->token_.type() == TokenType::ASSIGN, L"syntax tree assign -> =");
+		//	Assert::IsTrue(node->nodeList_[0]->token_.type() == TokenType::VARIABLE, L"syntax tree var -> variable:i");
+		//	Assert::IsTrue(node->nodeList_[1]->token_.type() == TokenType::INTEGER, L"syntax tree value -> integer:0");
+		//}
+
+		//TEST_METHOD(TestParser_DefinedVariable)
+		//{
+		//	auto parser = Parser(std::string("int i = 0;"));
+		//	auto node = parser.node();
+		//	auto symbolTable = parser.symbolTable();
+		//	node->walk(symbolTable);
+		//	Assert::IsTrue(symbolTable.find("i") != symbolTable.end(),					L"var.name : i");
+		//}
+
+		//TEST_METHOD(TestParser_AddStat)
+		//{
+		//	auto parser = Parser(std::string("1 + 1"));
+		//	auto node = parser.node();
+		//	Assert::IsTrue(node->token_.type() == TokenType::PLUS,						L"value : +");
+		//	Assert::IsTrue(node->nodeList_[0]->token_.type() == TokenType::INTEGER,		L"lhs : 1");
+		//	Assert::IsTrue(node->nodeList_[1]->token_.type() == TokenType::INTEGER,		L"rhs : 1");
+		//}
+
+
+		//TEST_METHOD(TestParser_AssignStatForDouble)
+		//{
+		//	auto parser = Parser(std::string("double var = 5.0;"));
+		//	auto node = parser.node();
+		//	Assert::IsTrue(node->token_.type() == TokenType::ASSIGN,					L"value : =");
+		//	Assert::IsTrue(node->nodeList_[0]->token_.type() == TokenType::VARIABLE,	L"type : var");
+		//	Assert::IsTrue(node->nodeList_[1]->token_.type() == TokenType::DECIMAL,		L"rhs : integer:0");
+		//}
+
+		//TEST_METHOD(TestParser_AssignStatForAdd)
+		//{
+		//	auto parser = Parser(std::string("int var = 1 + 2;"));
+		//	auto node = parser.node();
+		//	Assert::IsTrue(node->token_.type() == TokenType::ASSIGN,					L"value : =");
+		//	Assert::IsTrue(node->nodeList_[1]->token_.type() == TokenType::PLUS,		L"rhs.value : +");
+		//}
+
+		//TEST_METHOD(TestParser_AssignStatForSub)
+		//{
+		//	auto parser = Parser(std::string("int var = 1 - 2;"));
+		//	auto node = parser.node();
+		//	Assert::IsTrue(node->token_.type() == TokenType::ASSIGN, L"value : =");
+		//	Assert::IsTrue(node->nodeList_[1]->token_.type() == TokenType::MINUS,		L"rhs.value : -");
+		//}
+
+		//TEST_METHOD(TestParser_AssignStatForMul)
+		//{
+		//	auto parser = Parser(std::string("int var = 1 * 2;"));
+		//	auto node = parser.node();
+		//	Assert::IsTrue(node->token_.type() == TokenType::ASSIGN, L"value : =");
+		//	Assert::IsTrue(node->nodeList_[1]->token_.type() == TokenType::MUL, L"rhs.value : *");
+		//}
+
+		//TEST_METHOD(TestParser_AssignStatForDiv)
+		//{
+		//	auto parser = Parser(std::string("int var = 1 / 2;"));
+		//	auto node = parser.node();
+		//	Assert::IsTrue(node->token_.type() == TokenType::ASSIGN, L"value : =");
+		//	Assert::IsTrue(node->nodeList_[1]->token_.type() == TokenType::DIV, L"rhs.value : /");
+		//}
+
+		//TEST_METHOD(TestParser_AssignStatForAddAndSub)
+		//{
+		//	auto parser = Parser(std::string("int var = 1 * 2 + 3;"));
+		//	auto node = parser.node();
+		//	Assert::IsTrue(node->token_.type() == TokenType::ASSIGN, L"value : =");
+		//	Assert::IsTrue(node->nodeList_[1]->token_.type() == TokenType::PLUS, L"rhs.value : +");
+		//}
+
+		//TEST_METHOD(TestParser_AssignStatForAddAndDiv)
+		//{
+		//	auto parser = Parser(std::string("int var = 1 + 2 / 3;"));
+		//	auto node = parser.node();
+		//	Assert::IsTrue(node->token_.type() == TokenType::ASSIGN, L"value : =");
+		//	Assert::IsTrue(node->nodeList_[1]->token_.type() == TokenType::PLUS, L"rhs.value : +");
+		//}
+
+		//TEST_METHOD(TestParser_AssignStatForParenthesis)
+		//{
+		//	auto parser = Parser(std::string("int var = (1 + 2) * 3;"));
+		//	auto node = parser.node();
+		//	Assert::IsTrue(node->token_.type() == TokenType::ASSIGN, L"value : =");
+		//	Assert::IsTrue(node->nodeList_[1]->token_.type() == TokenType::MUL, L"rhs.value : *");
+		//}
+
+		//TEST_METHOD(TestParser_AssignStatForPositiveNumber)
+		//{
+		//	auto parser = Parser(std::string("int var = +1;"));
+		//	auto node = parser.node();
+		//	Assert::IsTrue(node->token_.type() == TokenType::ASSIGN, L"value : =");
+		//	Assert::IsTrue(node->nodeList_[1]->token_.type() == TokenType::INTEGER, L"rhs.value : integer:1");
+		//}
+
+		//TEST_METHOD(TestParser_AssignStatForNegativeNumber)
+		//{
+		//	auto parser = Parser(std::string("int var = -1;"));
+		//	auto node = parser.node();
+		//	Assert::IsTrue(node->token_.type() == TokenType::ASSIGN, L"value : =");
+		//	Assert::IsTrue(node->nodeList_[1]->token_.type() == TokenType::MINUS, L"rhs.type : -");
+		//}
+
+		//TEST_METHOD(TestParser_AssignStatForPositiveNumberAndParenthesis)
+		//{
+		//	auto parser = Parser(std::string("int var = (+1);"));
+		//	auto node = parser.node();
+		//	Assert::IsTrue(node->nodeList_[1]->token_.type() == TokenType::INTEGER, L"rhs.type : integer:1");
+
+		//	parser = Parser(std::string("int var = -(+1);"));
+		//	node = parser.node();
+		//	Assert::IsTrue(node->nodeList_[1]->token_.type() == TokenType::MINUS, L"rhs.type : -");
+		//}
+
+		//TEST_METHOD(TestParser_AssignStatForNegativeNumberAndParenthesis)
+		//{
+		//	auto parser = Parser(std::string("int var = -(-1);"));
+		//	auto node = parser.node();
+		//	Assert::IsTrue(node->nodeList_[1]->token_.type() == TokenType::MINUS, L"rhs.type : -");
+		//}
+
+		//TEST_METHOD(TestParser_AssignStatForBoolean)
+		//{
+		//	auto parser = Parser(std::string("bool b = true;"));
+		//	auto node = parser.node();
+		//	Assert::IsTrue(node->nodeList_[0]->token_.type() == TokenType::VARIABLE, L"rhs.type : true");
+		//	Assert::IsTrue(node->nodeList_[1]->token_.type() == TokenType::TRUE, L"rhs.type : true");
+		//}
+
+		//TEST_METHOD(TestParser_AssignStatForOr)
+		//{
+		//	auto parser = Parser(std::string("bool o = true || false;"));
+		//	auto node = parser.node();
+		//	Assert::IsTrue(node->nodeList_[0]->token_.type() == TokenType::VARIABLE, L"lhs.type : var:o");
+		//	Assert::IsTrue(node->nodeList_[1]->token_.type() == TokenType::OR, L"rhs.type : or");
+
+		//	node = node->nodeList_[1];
+		//	Assert::IsTrue(node->nodeList_[0]->token_.type() == TokenType::TRUE , L"lhs.type : true");
+		//	Assert::IsTrue(node->nodeList_[1]->token_.type() == TokenType::FALSE, L"lhs.type : false");
+		//}
+
+		//TEST_METHOD(TestParser_AssignStatForSyntaxErrorMissIden)
+		//{
+		//	auto parser = Parser(std::string("int = 0;"));
+		//	auto node = parser.node();
+		//	Assert::IsTrue(parser.isError(), L"in the errorlist");
+		//	Assert::IsTrue(parser.error("SyntaxError: missing identifier"), L"msg matches");
+		//}
 
 		//TEST_METHOD(TestParser_AssignStatForSyntaxErrorTypeMissmatch)
 		//{
