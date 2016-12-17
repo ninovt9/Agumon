@@ -128,6 +128,16 @@ namespace Agumon
 			return scanner.getToken();
 		}
 
+		inline std::vector<Token> getTokenList()
+		{
+			std::vector<Token> list;
+			while (!isEndOfExp())
+			{
+				list.push_back(getToken());
+			}
+			return list;
+		}
+
 	public:
 		Token						getSignToken();
 		Token						getIdentifierToken();

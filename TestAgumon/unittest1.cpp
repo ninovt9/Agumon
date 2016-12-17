@@ -177,6 +177,19 @@ namespace TestAgumon
 			Assert::IsTrue(scanner.peekToken().type() == TokenType::ASSIGN,		L"=");
 		}
 
+		TEST_METHOD(TestScanner_GetTokenList)
+		{
+			auto scanner = Scanner("int i = 0;");
+			
+			auto tokenList = scanner.getTokenList();
+			Assert::IsTrue(tokenList[0].type() == TokenType::INT_SIGN,		L"assign[0] : int");
+			Assert::IsTrue(tokenList[1].type() == TokenType::VARIABLE,		L"assign[1] : i");
+			Assert::IsTrue(tokenList[2].type() == TokenType::ASSIGN,		L"assign[2] : =");
+			Assert::IsTrue(tokenList[3].type() == TokenType::INTEGER,		L"assign[3] : 0");
+			Assert::IsTrue(tokenList[4].type() == TokenType::SEMICOLON,		L"assign[4] : ;");
+
+		}
+
 
 
 
@@ -299,24 +312,16 @@ namespace TestAgumon
 
 			inline AST expNode1()
 			{
-				//Token rhs, op;
-
 				auto lhs = termNode(); // AST(scanner_.getToken());
 
 				if (scanner_.peekToken().type() == TokenType::MUL || scanner_.peekToken().type() == TokenType::DIV)
 				{
-					//auto op = scanner_.getToken();
-					//auto rhs = scanner_.getToken();
-					//AST node = AST(scanner_.getToken());	// op
-					//node.addChildren(lhs);
-					//node.addChildren(scanner_.getToken());	// 
-					//return node;
-
 					auto op = scanner_.getToken();
 					auto rhs = scanner_.getToken();
-					AST node = AST(op, { lhs, rhs });
-					return node;
-				
+					AST node = AST(scanner_.getToken());	// op
+					node.addChildren(lhs);
+					node.addChildren(scanner_.getToken());	// 
+					return node;		
 				}
 				else
 				{
