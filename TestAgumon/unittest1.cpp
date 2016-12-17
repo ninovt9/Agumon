@@ -251,7 +251,11 @@ namespace TestAgumon
 		class Parser
 		{
 		public:
-			Parser(std::string text) : scanner_(text) { ; }
+			Parser(std::string text) 
+			{ 
+				tokenList_ = Scanner(text).getTokenList();
+				iter_ = tokenList_.begin();
+			}
 
 		public:
 			AST node() 
@@ -268,24 +272,19 @@ namespace TestAgumon
 
 			inline bool isTypeSign()
 			{
-				return scanner_.peekToken().type() == TokenType::INT_SIGN ||
-					scanner_.peekToken().type() == TokenType::DOUBLE_SIGN ||
-					scanner_.peekToken().type() == TokenType::BOOL_SIGN;
+				return peekToken().type() == TokenType::INT_SIGN ||
+					peekToken().type() == TokenType::DOUBLE_SIGN ||
+					peekToken().type() == TokenType::BOOL_SIGN;
 			}
 
 			inline AST assignNode()
 			{
-				auto type = scanner_.getToken();
-				auto var = scanner_.getToken();
-				auto assign = scanner_.getToken();
-				auto lhs = scanner_.getToken();
+				auto type = getToken();
+				auto var = getToken();
+				auto assign = getToken();
+				auto rhs = getToken();
 
-				AST node = AST(assign);
-				node.addChildren(type);
-				node.addChildren(var);
-				node.addChildren(lhs);
-
-				return node;
+				return AST(assign, { type, var, rhs });
 			}
 
 			inline AST expNode()
@@ -295,10 +294,10 @@ namespace TestAgumon
 
 				auto lhs = expNode1(); // termNode();
 				
-				if (scanner_.peekToken().type() == TokenType::PLUS || scanner_.peekToken().type() == TokenType::MINUS)
+				if (peekToken().type() == TokenType::PLUS || peekToken().type() == TokenType::MINUS)
 				{
-					op = scanner_.getToken();
-					rhs = scanner_.getToken();
+					op = getToken();
+					rhs = getToken();
 				}
 
 				AST node = AST(op);
@@ -312,15 +311,15 @@ namespace TestAgumon
 
 			inline AST expNode1()
 			{
-				auto lhs = termNode(); // AST(scanner_.getToken());
+				auto lhs = termNode(); // AST(getToken());
 
-				if (scanner_.peekToken().type() == TokenType::MUL || scanner_.peekToken().type() == TokenType::DIV)
+				if (peekToken().type() == TokenType::MUL || peekToken().type() == TokenType::DIV)
 				{
-					auto op = scanner_.getToken();
-					auto rhs = scanner_.getToken();
-					AST node = AST(scanner_.getToken());	// op
+					auto op = getToken();
+					auto rhs = getToken();
+					AST node = AST(getToken());	// op
 					node.addChildren(lhs);
-					node.addChildren(scanner_.getToken());	// 
+					node.addChildren(getToken());	// 
 					return node;		
 				}
 				else
@@ -331,12 +330,16 @@ namespace TestAgumon
 
 			inline AST termNode()
 			{
-				return AST(scanner_.getToken());
+				return AST(getToken());
 			}
 
-
+		public:
+			inline Token getToken() { return *(iter_++); }
+			inline Token peekToken() { return *iter_; }
+		
 		private:
-			Scanner scanner_;
+			std::vector<Token> tokenList_;
+			std::vector<Token>::iterator iter_;
 		};
 
 		TEST_METHOD(TestParser_AssignStat)
