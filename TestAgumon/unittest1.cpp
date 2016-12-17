@@ -301,7 +301,11 @@ namespace TestAgumon
 
 					return AST(op.token(), std::vector<AST>{lhs, rhs});
 				}
-			}
+				else
+				{
+					return lhs;
+				}
+ 			}
 
 
 			inline AST expNode1()
@@ -322,12 +326,24 @@ namespace TestAgumon
 
 			inline AST termNode()
 			{
-				return AST(getToken());
+				if (peekToken().type() == TokenType::LEFT_PAR)
+				{
+					getToken();	 // skip left parenthesis
+					auto result = expNode();
+					getToken();  // skip right parenthesis
+					return result;
+				}
+				else
+				{
+					return AST(getToken());
+				}
+				
 			}
 
 		public:
 			inline Token getToken() { return *(iter_++); }
-			inline Token peekToken() { return *iter_; }
+			inline Token peekToken() { return !isEndOfList() ? *iter_ : Token(TokenType::INVAILD); }
+			inline bool isEndOfList() { return iter_ == tokenList_.end(); }
 		
 		private:
 			std::vector<Token> tokenList_;
@@ -371,6 +387,17 @@ namespace TestAgumon
 
 			node = Parser("1-2*3+5").node();
 			Assert::IsTrue(node.type() == TokenType::MINUS, L"root type : minus");
+		}
+
+		TEST_METHOD(TestParser_ParenthesisExp)
+		{
+			Parser parser = Parser("(1+2)");
+			auto node = parser.node();
+			Assert::IsTrue(node.type() == TokenType::PLUS, L"root type : plus");
+
+			node = Parser("(2+1)-1").node();
+			Assert::IsTrue(node.type() == TokenType::MINUS, L"root type : minus");
+
 		}
 
 
