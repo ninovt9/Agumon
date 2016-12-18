@@ -37,6 +37,10 @@ namespace Agumon
 		LEFT_PAR,
 		RIGHT_PAR,
 		OR,
+		GEATER_THAN,
+		GEATER_THAN_OR_EQUAL,
+		LESS_THAN,
+		LESS_THAN_OR_EQUAL,
 
 		INVAILD,
 		
@@ -78,6 +82,10 @@ namespace Agumon
 			map_.insert(std::pair<std::string, Token>("(", Token(TokenType::LEFT_PAR)));
 			map_.insert(std::pair<std::string, Token>(")", Token(TokenType::RIGHT_PAR)));
 			map_.insert(std::pair<std::string, Token>("||", Token(TokenType::OR)));
+			map_.insert(std::pair<std::string, Token>(">", Token(TokenType::GEATER_THAN)));
+			map_.insert(std::pair<std::string, Token>(">=", Token(TokenType::GEATER_THAN_OR_EQUAL)));
+			map_.insert(std::pair<std::string, Token>("<", Token(TokenType::LESS_THAN)));
+			map_.insert(std::pair<std::string, Token>("<=", Token(TokenType::LESS_THAN_OR_EQUAL)));
 		}
 	public:
 		Token						token(std::string key);
@@ -178,18 +186,17 @@ namespace Agumon
 
 	inline Token Scanner::getSignToken()
 	{
-		if (dict_.find(peekChar()))
+		std::string buffer;
+		// add first char
+		buffer.push_back(getChar());		
+
+		// ×î³¤Æ¥Åä
+		while (dict_.find(buffer + Convert::toString(peekChar())))
 		{
-			return dict_.token(getChar());
+			buffer.push_back(getChar()); 
 		}
-		else
-		{
-			std::string buffer;
-			buffer.push_back(getChar());
-			buffer.push_back(getChar());
-			return dict_.token(buffer);
-		}
-		
+
+		return dict_.token(buffer);
 	}
 
 	inline Token Scanner::getIdentifierToken()

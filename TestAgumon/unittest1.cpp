@@ -131,6 +131,19 @@ namespace TestAgumon
 			scanner = Scanner("||");
 			Assert::IsTrue(scanner.getToken().type() == TokenType::OR,			L"get token or");
 
+			scanner = Scanner(">");
+			Assert::IsTrue(scanner.getToken().type() == TokenType::GEATER_THAN, L"get token geater than");
+
+			scanner = Scanner(">=");
+			Assert::IsTrue(scanner.getToken().type() == TokenType::GEATER_THAN_OR_EQUAL,  L"get token geater than or equal");
+
+			scanner = Scanner("<");
+			Assert::IsTrue(scanner.getToken().type() == TokenType::LESS_THAN, L"get token less than");
+
+			scanner = Scanner("<=");
+			Assert::IsTrue(scanner.getToken().type() == TokenType::LESS_THAN_OR_EQUAL, L"get token less than or equal");
+
+
 			// skip token
 			scanner = Scanner(" int");
 			Assert::IsTrue(scanner.getToken().type() == TokenType::INT_SIGN,			L"skip token space ");
@@ -269,7 +282,7 @@ namespace TestAgumon
 				}
 				else
 				{
-					return expNode();
+					return expNode3();
 				}
 			}
 
@@ -290,7 +303,25 @@ namespace TestAgumon
 				return AST(assign.token(), std::vector<AST>{type, var, rhs});
 			}
 
-			inline AST expNode()
+			inline AST expNode3()
+			{
+				auto lhs = expNode2();
+
+				if (peekToken().type() == TokenType::GEATER_THAN || peekToken().type() == TokenType::GEATER_THAN_OR_EQUAL
+					|| peekToken().type() == TokenType::LESS_THAN || peekToken().type() == TokenType::LESS_THAN_OR_EQUAL)
+				{
+					auto op = termNode();
+					auto rhs = termNode();
+
+					return AST(op.token(), std::vector<AST>{lhs, rhs});
+				}
+				else
+				{
+					return lhs;
+				}
+			}
+
+			inline AST expNode2()
 			{
 				auto lhs = expNode1();
 				
@@ -329,7 +360,7 @@ namespace TestAgumon
 				if (peekToken().type() == TokenType::LEFT_PAR)
 				{
 					getToken();	 // skip left parenthesis
-					auto result = expNode();
+					auto result = expNode2();
 					getToken();  // skip right parenthesis
 					return result;
 				}
@@ -397,8 +428,32 @@ namespace TestAgumon
 
 			node = Parser("(2+1)-1").node();
 			Assert::IsTrue(node.type() == TokenType::MINUS, L"root type : minus");
-
 		}
+
+		TEST_METHOD(TestParser_GreaterThan)
+		{
+			auto node = Parser("2 > 1").node();
+			Assert::IsTrue(node.type() == TokenType::GEATER_THAN, L"root type : greater than");
+		}
+
+		TEST_METHOD(TestParser_GreaterThanOrEqual)
+		{
+			auto node = Parser("2 >= 1").node();
+			Assert::IsTrue(node.type() == TokenType::GEATER_THAN_OR_EQUAL, L"root type : greater than or equal");
+		}
+
+		TEST_METHOD(TestParser_LessThan)
+		{
+			auto node = Parser("2 < 1").node();
+			Assert::IsTrue(node.type() == TokenType::LESS_THAN, L"root type : less than");
+		}
+
+		TEST_METHOD(TestParser_LessThanOrEqual)
+		{
+			auto node = Parser("2 <= 1").node();
+			Assert::IsTrue(node.type() == TokenType::LESS_THAN_OR_EQUAL, L"root type : less than or equal");
+		}
+
 
 
 
