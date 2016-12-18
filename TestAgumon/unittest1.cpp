@@ -143,6 +143,12 @@ namespace TestAgumon
 			scanner = Scanner("<=");
 			Assert::IsTrue(scanner.getToken().type() == TokenType::LESS_THAN_OR_EQUAL, L"get token less than or equal");
 
+			scanner = Scanner("[");
+			Assert::IsTrue(scanner.getToken().type() == TokenType::LEFT_SQUARE_BAR, L"get token left square bracket");
+
+			scanner = Scanner("]");
+			Assert::IsTrue(scanner.getToken().type() == TokenType::RIGHT_SQUARE_BAR, L"get token right square bracket");
+
 
 			// skip token
 			scanner = Scanner(" int");
@@ -454,6 +460,10 @@ namespace TestAgumon
 			Assert::IsTrue(node.type() == TokenType::LESS_THAN_OR_EQUAL, L"root type : less than or equal");
 		}
 
+		TEST_METHOD(TestParser_Array)
+		{
+
+		}
 
 
 
