@@ -41,8 +41,10 @@ namespace Agumon
 		GEATER_THAN_OR_EQUAL,
 		LESS_THAN,
 		LESS_THAN_OR_EQUAL,
-		LEFT_SQUARE_BAR,
+		LEFT_SQUARE_BRA,
 		RIGHT_SQUARE_BAR,
+		POINT,				// .
+		POINT_TO_STRUCT,	// ->
 
 		INVAILD,
 		
@@ -88,8 +90,10 @@ namespace Agumon
 			map_.insert(std::pair<std::string, Token>(">=", Token(TokenType::GEATER_THAN_OR_EQUAL)));
 			map_.insert(std::pair<std::string, Token>("<", Token(TokenType::LESS_THAN)));
 			map_.insert(std::pair<std::string, Token>("<=", Token(TokenType::LESS_THAN_OR_EQUAL)));
-			map_.insert(std::pair<std::string, Token>("[", Token(TokenType::LEFT_SQUARE_BAR)));
+			map_.insert(std::pair<std::string, Token>("[", Token(TokenType::LEFT_SQUARE_BRA)));
 			map_.insert(std::pair<std::string, Token>("]", Token(TokenType::RIGHT_SQUARE_BAR)));
+			map_.insert(std::pair<std::string, Token>(".", Token(TokenType::POINT)));
+			map_.insert(std::pair<std::string, Token>("->", Token(TokenType::POINT_TO_STRUCT)));
 		}
 	public:
 		Token						token(std::string key);

@@ -144,11 +144,16 @@ namespace TestAgumon
 			Assert::IsTrue(scanner.getToken().type() == TokenType::LESS_THAN_OR_EQUAL, L"get token less than or equal");
 
 			scanner = Scanner("[");
-			Assert::IsTrue(scanner.getToken().type() == TokenType::LEFT_SQUARE_BAR, L"get token left square bracket");
+			Assert::IsTrue(scanner.getToken().type() == TokenType::LEFT_SQUARE_BRA, L"get token left square bracket");
 
 			scanner = Scanner("]");
 			Assert::IsTrue(scanner.getToken().type() == TokenType::RIGHT_SQUARE_BAR, L"get token right square bracket");
 
+			scanner = Scanner(".");
+			Assert::IsTrue(scanner.getToken().type() == TokenType::POINT, L"get token point");
+
+			scanner = Scanner("->");
+			Assert::IsTrue(scanner.getToken().type() == TokenType::POINT_TO_STRUCT, L"get token point to struct");
 
 			// skip token
 			scanner = Scanner(" int");
@@ -363,12 +368,35 @@ namespace TestAgumon
 
 			inline AST termNode()
 			{
-				if (peekToken().type() == TokenType::LEFT_PAR)
+				if (skipToken(TokenType::LEFT_PAR))
 				{
-					getToken();	 // skip left parenthesis
 					auto result = expNode2();
-					getToken();  // skip right parenthesis
+					skipToken(TokenType::RIGHT_PAR);
 					return result;
+				}
+				else if (peekToken().type() == TokenType::VARIABLE)
+				{
+					auto var = getToken();	
+					if(skipToken(TokenType::LEFT_SQUARE_BRA))
+					{
+						auto size = expNode2();		// 最后统一改成expNode()
+						skipToken(TokenType::RIGHT_SQUARE_BAR);
+						return AST(var, { AST(size) });
+					}
+					else if (skipToken(TokenType::POINT))
+					{
+						auto member = expNode2();
+						return AST(Token(TokenType::POINT), { var, member });
+					}
+					else if (skipToken(TokenType::POINT_TO_STRUCT))
+					{
+						auto member = expNode2();
+						return AST(Token(TokenType::POINT_TO_STRUCT), { var, member });
+					}
+					else
+					{
+						return AST(var);
+					}
 				}
 				else
 				{
@@ -381,6 +409,19 @@ namespace TestAgumon
 			inline Token getToken() { return *(iter_++); }
 			inline Token peekToken() { return !isEndOfList() ? *iter_ : Token(TokenType::INVAILD); }
 			inline bool isEndOfList() { return iter_ == tokenList_.end(); }
+
+			inline bool skipToken(TokenType type)
+			{
+				if (peekToken().type() == type)
+				{
+					getToken();
+					return true;
+				}
+				else
+				{
+					return false;
+				}
+			}
 		
 		private:
 			std::vector<Token> tokenList_;
@@ -462,7 +503,24 @@ namespace TestAgumon
 
 		TEST_METHOD(TestParser_Array)
 		{
+			// int arr[5], 暂时没想到好办法，先定义成变量，size放到子节点
 
+			auto node = Parser("arr[5];").node();
+			Assert::IsTrue(node.type() == TokenType::VARIABLE, L"root type : array -> variable");
+			Assert::IsTrue(node.childrenList()[0].type() == TokenType::INTEGER, L"child[0] type : integer(size)");
+		}
+
+		TEST_METHOD(TestParser_Point)
+		{
+			auto node = Parser("class.member").node();
+			Assert::IsTrue(node.type() == TokenType::POINT, L"root type : point");
+			Assert::IsTrue(node.childrenList()[1].type() == TokenType::VARIABLE, L"child[1] type : var(member)");
+		}
+
+		TEST_METHOD(TestParser_Pointer)
+		{
+			auto node = Parser("pointer->member").node();
+			Assert::IsTrue(node.type() == TokenType::POINT_TO_STRUCT, L"root type : point to struct");
 		}
 
 
