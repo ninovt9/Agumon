@@ -334,6 +334,38 @@ namespace TestAgumon
 		}
 
 
+		class Generator
+		{
+		public:
+			Generator(AST ast) : ast_(ast) { ; }
 
+		public:
+
+			inline void addVar(Token token)
+			{
+				
+			}
+
+			inline bool findVar(std::string varName)
+			{
+				auto varToken = ast_.childrenList()[1].token();
+				varList_.insert({ varToken.value(), varToken });	
+				bool result = varList_.find(varName) != varList_.end();
+				return result;
+			}
+
+		private:
+			AST ast_;
+			std::map<std::string, Token> varList_;
+		};
+
+
+		TEST_METHOD(TestGenerator)
+		{
+			auto node = Parser("int i = 0;").node();
+			Generator generator = Generator(node);
+			Assert::IsTrue(generator.findVar("i"), L"find var : i");
+			Assert::IsFalse(generator.findVar("d"), L"find var : d");
+		}
 	};
 }
