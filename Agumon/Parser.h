@@ -63,9 +63,14 @@ namespace Agumon
 			auto type = termNode();
 			auto var = termNode();
 			auto assign = termNode();
-			auto rhs = termNode();
+			auto rhs = expNode(); // termNode();
 
 			return AST(assign.token(), std::vector<AST>{type, var, rhs});
+		}
+
+		inline AST expNode()
+		{
+			return expNode3();
 		}
 
 		inline AST expNode3()

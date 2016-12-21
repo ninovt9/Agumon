@@ -46,6 +46,8 @@ namespace Agumon
 		POINT,				// .
 		POINT_TO_STRUCT,	// ->
 
+		PRINT,
+
 		INVAILD,
 		
 	};
@@ -94,6 +96,7 @@ namespace Agumon
 			map_.insert(std::pair<std::string, Token>("]", Token(TokenType::RIGHT_SQUARE_BAR)));
 			map_.insert(std::pair<std::string, Token>(".", Token(TokenType::POINT)));
 			map_.insert(std::pair<std::string, Token>("->", Token(TokenType::POINT_TO_STRUCT)));
+			map_.insert(std::pair<std::string, Token>("print", Token(TokenType::PRINT)));
 		}
 	public:
 		Token						token(std::string key);
