@@ -3,13 +3,13 @@
 
 #include "Scanner.h"
 #include "Dictionary.h"
-// #include "Node.h"
 #include "Parser.h"
 
 #include <map>
 #include <vector>
 #include <algorithm>
 #include <memory>
+#include <fstream>
 
 using namespace Microsoft::VisualStudio::CppUnitTestFramework;
 using namespace Agumon;
@@ -337,22 +337,64 @@ namespace TestAgumon
 		class Generator
 		{
 		public:
-			Generator(AST ast) : ast_(ast) { ; }
+			Generator(AST ast) : ast_(ast) 
+			{ 
+				analyze();
+			}
 
 		public:
 
+			inline void analyze()
+			{
+				addVar(ast_.childrenList()[1].token());
+			}
+
 			inline void addVar(Token token)
 			{
-				
+				varList_.insert({ token.value(), token});
 			}
 
 			inline bool findVar(std::string varName)
 			{
-				auto varToken = ast_.childrenList()[1].token();
-				varList_.insert({ varToken.value(), varToken });	
-				bool result = varList_.find(varName) != varList_.end();
-				return result;
+				return varList_.find(varName) != varList_.end();
 			}
+
+		public:
+			// const std::string HEAD = ".386\n.model nflat, stdcall\noption  casemap : none\n";
+			std::vector<std::string> LINEBREAK{"\n"};
+			std::vector<std::string> HEAD{ ".386", ".model flat, stdcall", "option casemap : none" };
+			std::vector<std::string> INCLUDE{"include windows.inc", "include kernel32.inc",
+								"includelib kernel32.lib", "include	msvcrt.inc", "includelib msvcrt.lib" };
+			std::vector<std::string> DATA{ ".data" };
+
+			inline void pushLine(std::ofstream& outFile, std::vector<std::string> lineList)
+			{
+				for (auto line : lineList)
+				{
+					outFile << line << "\n";
+				}
+			}
+
+			inline void toFile(std::string filePath)
+			{
+				std::ofstream outFile(filePath);
+				pushLine(outFile, HEAD);
+				pushLine(outFile, LINEBREAK);
+				pushLine(outFile, INCLUDE);
+				// pushLine(outFile, DATA);
+
+				for (auto var : varList_)
+				{
+					DATA.push_back("var_" + var.first + " " + "dd" + " " + var.second.value());
+				}
+				pushLine(outFile, LINEBREAK);
+				pushLine(outFile, DATA);
+
+				outFile.close();
+			}
+
+			
+
 
 		private:
 			AST ast_;
@@ -366,6 +408,9 @@ namespace TestAgumon
 			Generator generator = Generator(node);
 			Assert::IsTrue(generator.findVar("i"), L"find var : i");
 			Assert::IsFalse(generator.findVar("d"), L"find var : d");
+
+			std::string filePath = "d:\\";
+			generator.toFile(filePath + "result.asm");
 		}
 	};
 }
