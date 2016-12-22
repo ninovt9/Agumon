@@ -38,7 +38,6 @@ namespace TestAgumon
 
 			inline void analyze()
 			{
-				// auto type = ast_.childrenList()[0].type();
 				auto name = ast_.childrenList()[1].token().value();
 				auto token = ast_.childrenList()[2].token();
 				addVar(name, token);
@@ -60,6 +59,7 @@ namespace TestAgumon
 			std::vector<std::string> INCLUDE{ "include windows.inc", "include kernel32.inc",
 				"includelib kernel32.lib", "include	msvcrt.inc", "includelib msvcrt.lib" };
 			std::vector<std::string> DATA{ ".data" };
+			std::vector<std::string> CODE{ ".code", "start:" };
 
 			inline void pushLine(std::ofstream& outFile, std::vector<std::string> lineList)
 			{
@@ -71,19 +71,7 @@ namespace TestAgumon
 
 			inline void toFile(std::string filePath)
 			{
-				//std::ofstream outFile(filePath);
-				//pushLine(outFile, HEAD);
-				//pushLine(outFile, LINEBREAK);
-				//pushLine(outFile, INCLUDE);
 
-				//for (auto var : varList_)
-				//{
-				//	DATA.push_back(var.first + " " + "dd" + " " + var.second.value());
-				//}
-				//pushLine(outFile, LINEBREAK);
-				//pushLine(outFile, DATA);
-
-				//outFile.close();
 			}
 
 			inline void pushOptionToFile(std::ofstream &outFile) 
@@ -109,13 +97,19 @@ namespace TestAgumon
 				}
 			}
 
+			inline void pushCodeToFile(std::ofstream &outFile)
+			{
+				pushLine(outFile, CODE);
+				
+			}
+
 		private:
 			AST ast_;
 			std::map<std::string, Token> varList_;
 		};
 
 	private:
-		const std::string TEST_PATH = "D:\\code\\Agumon\\TestAgumon\\";
+		const std::string TEST_PATH = "..\\TestAgumon\\";
 		const std::string ASM_FILE = "test.asm";
 
 	public:
@@ -132,8 +126,10 @@ namespace TestAgumon
 		TEST_METHOD(TestGenerator_PushOptionToFile)
 		{
 			auto generator = Generator();
-
 			auto outFile = std::ofstream(TEST_PATH + ASM_FILE, std::ios::out);
+
+			Assert::IsFalse(outFile.fail(), L"open file");
+
 			generator.pushOptionToFile(outFile);
 			outFile.close();
 
@@ -161,7 +157,8 @@ namespace TestAgumon
 
 		TEST_METHOD(TestGenerator_PushDataToFile)
 		{
-			auto generator = Generator();
+			auto node = Parser("int i = 0;").node();
+			auto generator = Generator(node);
 
 			auto outFile = std::ofstream(TEST_PATH + ASM_FILE, std::ios::out);
 			generator.pushDataToFile(outFile);
@@ -171,34 +168,34 @@ namespace TestAgumon
 			std::string line;
 			std::getline(inFile, line);
 			Assert::IsTrue(line == ".data", L".data");
-			inFile.close();
-
-
-			auto node = Parser("int i = 0;").node();
-			generator = Generator(node);
-
-			outFile = std::ofstream(TEST_PATH + ASM_FILE, std::ios::out);
-			generator.pushDataToFile(outFile);
-			outFile.close();
-
-			inFile = std::ifstream(TEST_PATH + ASM_FILE);
-			std::getline(inFile, line);
-			Assert::IsTrue(line == ".data", L".data");
 
 			std::getline(inFile, line);
 			Assert::IsTrue(line == "i dd 0");
 			inFile.close();
 		}
 
+		TEST_METHOD(TestGenerator_PushCodeToFile)
+		{
+			auto node = Parser("int i = 1+1").node();
+			auto generator = Generator(node);
 
+			auto outFile = std::ofstream(TEST_PATH + ASM_FILE, std::ios::out);
+			generator.pushCodeToFile(outFile);
+			outFile.close();
 
+			auto inFile = std::ifstream(TEST_PATH + ASM_FILE);
+			std::string line;
+			std::getline(inFile, line);
+			Assert::IsTrue(line == ".code", L".data");
 
-		//TEST_METHOD(TestGenerator_pushLineFor)
-		//{
-		//	auto node = Parser("int i = 1 + 1;").node();
-		//	auto generator = Generator(node);
-		//	generator.toFile(TEST_PATH + ASM_FILE);
-		//}
+			std::getline(inFile, line);
+			Assert::IsTrue(line == "start:");
+
+			//std::getline(inFile, line);
+			//Assert::IsTrue(line == "mov eax, 1");
+			
+
+		}
 
 	};
 }

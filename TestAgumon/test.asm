@@ -1,2 +1,2 @@
-.data
-i dd 0
+.code
+start:
