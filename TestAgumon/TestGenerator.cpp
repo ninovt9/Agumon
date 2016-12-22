@@ -38,12 +38,15 @@ namespace TestAgumon
 
 			inline void analyze()
 			{
-				addVar(ast_.childrenList()[1].token());
+				// auto type = ast_.childrenList()[0].type();
+				auto name = ast_.childrenList()[1].token().value();
+				auto token = ast_.childrenList()[2].token();
+				addVar(name, token);
 			}
 
-			inline void addVar(Token token)
+			inline void addVar(std::string name, Token token)
 			{
-				varList_.insert({ token.value(), token });
+				varList_.insert({ name, token });
 			}
 
 			inline bool findVar(std::string varName)
@@ -88,6 +91,24 @@ namespace TestAgumon
 				pushLine(outFile, OPTION);
 			}
 
+			inline void pushIncludeToFile(std::ofstream &outFile)
+			{
+				pushLine(outFile, INCLUDE);
+			}
+
+			inline void pushDataToFile(std::ofstream &outFile)
+			{
+				pushLine(outFile, DATA);
+
+				for (auto var : varList_)
+				{
+					std::string name = var.first;
+					std::string type = "dd";
+					std::string value = var.second.value();
+					pushLine(outFile, { name + " " + type + " " + value });
+				}
+			}
+
 		private:
 			AST ast_;
 			std::map<std::string, Token> varList_;
@@ -98,6 +119,16 @@ namespace TestAgumon
 		const std::string ASM_FILE = "test.asm";
 
 	public:
+
+		TEST_METHOD(TestGenerator_Analyze)
+		{
+			auto node = Parser("int i = 0;").node();
+			Generator generator = Generator(node);
+			Assert::IsTrue(generator.findVar("i"), L"find var : i");
+			Assert::IsFalse(generator.findVar("d"), L"find var : d");
+		}
+
+		
 		TEST_METHOD(TestGenerator_PushOptionToFile)
 		{
 			auto generator = Generator();
@@ -110,6 +141,52 @@ namespace TestAgumon
 			std::string line;
 			std::getline(inFile, line);
 			Assert::IsTrue(line == ".386", L"line 1 : '.386'");
+			inFile.close();
+		}
+
+		TEST_METHOD(TestGenerator_PushIncludeToFile)
+		{
+			auto generator = Generator();
+			
+			auto outFile = std::ofstream(TEST_PATH + ASM_FILE, std::ios::out);
+			generator.pushIncludeToFile(outFile);
+			outFile.close();
+
+			auto inFile = std::ifstream(TEST_PATH + ASM_FILE);
+			std::string line;
+			std::getline(inFile, line);
+			Assert::IsTrue(line == "include windows.inc", L"include windows.inc");
+			inFile.close();
+		}
+
+		TEST_METHOD(TestGenerator_PushDataToFile)
+		{
+			auto generator = Generator();
+
+			auto outFile = std::ofstream(TEST_PATH + ASM_FILE, std::ios::out);
+			generator.pushDataToFile(outFile);
+			outFile.close();
+
+			auto inFile = std::ifstream(TEST_PATH + ASM_FILE);
+			std::string line;
+			std::getline(inFile, line);
+			Assert::IsTrue(line == ".data", L".data");
+			inFile.close();
+
+
+			auto node = Parser("int i = 0;").node();
+			generator = Generator(node);
+
+			outFile = std::ofstream(TEST_PATH + ASM_FILE, std::ios::out);
+			generator.pushDataToFile(outFile);
+			outFile.close();
+
+			inFile = std::ifstream(TEST_PATH + ASM_FILE);
+			std::getline(inFile, line);
+			Assert::IsTrue(line == ".data", L".data");
+
+			std::getline(inFile, line);
+			Assert::IsTrue(line == "i dd 0");
 			inFile.close();
 		}
 

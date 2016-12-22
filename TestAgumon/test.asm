@@ -1,3 +1,2 @@
-.386
-.model flat, stdcall
-option casemap : none
+.data
+i dd 0
