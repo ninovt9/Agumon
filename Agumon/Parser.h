@@ -20,6 +20,7 @@ namespace Agumon
 	public:
 		inline Token					token() { return token_; }
 		inline TokenType				type() { return token_.type(); }
+		inline std::string				value() { return token_.value(); }
 		inline std::vector<AST>			childrenList() { return childrenList_; }
 		inline void						addChildren(Token token) { childrenList_.push_back(AST(token)); }
 		inline void						addChildren(AST ast) { childrenList_.push_back(ast); }
