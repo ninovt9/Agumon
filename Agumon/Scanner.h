@@ -81,10 +81,10 @@ namespace Agumon
 			map_.insert(std::pair<std::string, Token>("false", Token(TokenType::FALSE)));
 			map_.insert(std::pair<std::string, Token>(";", Token(TokenType::SEMICOLON)));
 			map_.insert(std::pair<std::string, Token>("=", Token(TokenType::ASSIGN)));
-			map_.insert(std::pair<std::string, Token>("+", Token(TokenType::PLUS)));
-			map_.insert(std::pair<std::string, Token>("-", Token(TokenType::MINUS)));
-			map_.insert(std::pair<std::string, Token>("*", Token(TokenType::MUL)));
-			map_.insert(std::pair<std::string, Token>("/", Token(TokenType::DIV)));
+			map_.insert(std::pair<std::string, Token>("+", Token(TokenType::PLUS, "+")));
+			map_.insert(std::pair<std::string, Token>("-", Token(TokenType::MINUS, "-")));
+			map_.insert(std::pair<std::string, Token>("*", Token(TokenType::MUL, "*")));
+			map_.insert(std::pair<std::string, Token>("/", Token(TokenType::DIV, "/")));
 			map_.insert(std::pair<std::string, Token>("(", Token(TokenType::LEFT_PAR)));
 			map_.insert(std::pair<std::string, Token>(")", Token(TokenType::RIGHT_PAR)));
 			map_.insert(std::pair<std::string, Token>("||", Token(TokenType::OR)));

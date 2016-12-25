@@ -16,7 +16,7 @@ using namespace Agumon;
 
 namespace TestAgumon
 {
-	TEST_CLASS(TestGenerator)
+	TEST_CLASS(Test_Generator)
 	{
 
 
