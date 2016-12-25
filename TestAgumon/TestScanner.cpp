@@ -4,12 +4,6 @@
 #include "Scanner.h"
 #include "Dictionary.h"
 
-#include <map>
-#include <vector>
-#include <algorithm>
-#include <memory>
-#include <fstream>
-
 using namespace Microsoft::VisualStudio::CppUnitTestFramework;
 using namespace Agumon;
 
