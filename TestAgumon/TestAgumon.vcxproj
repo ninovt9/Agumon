@@ -168,6 +168,7 @@
     <ClCompile Include="TestGenerator.cpp" />
     <ClCompile Include="TestParser.cpp" />
     <ClCompile Include="TestScanner.cpp" />
+    <ClCompile Include="TestVisitor.cpp" />
   </ItemGroup>
   <ItemGroup>
     <ProjectReference Include="..\Agumon\Agumon.vcxproj">

@@ -55,12 +55,23 @@ namespace TestAgumon
 					walk(ast.childrenList()[1], "ecx");
 					add("eax", "ecx");
 				}
+				else if (ast.type() == TokenType::MINUS)
+				{
+					walk(ast.childrenList()[0], "eax");
+					walk(ast.childrenList()[1], "ecx");
+					sub("eax", "ecx");
+				}
 				else if (ast.type() == TokenType::MUL)
 				{
 					walk(ast.childrenList()[0], "eax");
 					walk(ast.childrenList()[1], "ecx");
 					mul("eax", "ecx");
-
+				}
+				else if (ast.type() == TokenType::DIV)
+				{
+					walk(ast.childrenList()[0], "eax");
+					walk(ast.childrenList()[1], "ecx");
+					div("eax", "ecx");
 				}
 			}
 
@@ -74,9 +85,20 @@ namespace TestAgumon
 				statList_.push_back(std::string("add " + lhs + ", " + rhs));
 			}
 
+			inline void sub(std::string lhs, std::string rhs)
+			{
+				statList_.push_back(std::string("sub " + lhs + ", " + rhs));
+			}
+
 			inline void mul(std::string lhs, std::string rhs)
 			{
 				statList_.push_back(std::string("imul " + lhs + ", " + rhs));
+			}
+
+			inline void div(std::string lhs, std::string rhs)
+			{
+				statList_.push_back(std::string("cdq"));
+				statList_.push_back(std::string("idiv " + rhs));
 			}
 
 			inline void addVar(std::string name, Token token)
@@ -160,6 +182,14 @@ namespace TestAgumon
 		const std::string TEST_PATH = "..\\TestAgumon\\";
 		const std::string ASM_FILE = "test.asm";
 
+	private:
+		inline void checkLine(std::ifstream &inFile, std::string correct, const wchar_t *message)
+		{
+			std::string line;
+			std::getline(inFile, line);
+			Assert::IsTrue(line == correct, message);
+		}
+
 	public:
 
 		TEST_METHOD(TestGenerator_Analyze)
@@ -205,8 +235,7 @@ namespace TestAgumon
 
 		TEST_METHOD(TestGenerator_PushDataToFile)
 		{
-			auto node = Parser("int i = 0;").node();
-			auto generator = Generator(node);
+			auto generator = Generator(Parser("int i = 0").node());
 
 			auto outFile = std::ofstream(TEST_PATH + ASM_FILE, std::ios::out);
 			generator.pushDataToFile(outFile);
@@ -222,139 +251,75 @@ namespace TestAgumon
 			inFile.close();
 		}
 
-		TEST_METHOD(TestGenerator_PushCodeToFile_1)
+		TEST_METHOD(TestGenerator_PushCodeToFile_Assign)
 		{
-			auto node = Parser("int i = 2").node();
-			auto generator = Generator(node);
+			auto generator = Generator(Parser("int i = 2").node());
 
 			auto outFile = std::ofstream(TEST_PATH + ASM_FILE, std::ios::out);
 			generator.pushCodeToFile(outFile);
 			outFile.close();
 
 			auto inFile = std::ifstream(TEST_PATH + ASM_FILE);
-			std::string line;
-			std::getline(inFile, line);
-			Assert::IsTrue(line == ".code", L".data");
-
-			std::getline(inFile, line);
-			Assert::IsTrue(line == "start:", L"start:");
-
-			std::getline(inFile, line);
-			Assert::IsTrue(line == "mov eax, 2", L"mov eax, 2");
-
-			std::getline(inFile, line);
-			Assert::IsTrue(line == "mov i, eax", L"mov i, eax");
-
-			std::getline(inFile, line);
-			Assert::IsTrue(line == "end start", L"end start");
+			checkLine(inFile, ".code", L".data");
+			checkLine(inFile, "start:", L"start:");
+			checkLine(inFile, "mov eax, 2", L"mov eax, 2");
+			checkLine(inFile, "mov i, eax", L"mov i, eax");
+			checkLine(inFile, "end start", L"end start");
 		}
 
-		TEST_METHOD(TestGenerator_PushCodeToFile_2)
+		TEST_METHOD(TestGenerator_PushCodeToFile_Add)
 		{
-			auto node = Parser("int i = 1 + 1").node();
-			auto generator = Generator(node);
+			auto generator = Generator(Parser("int i = 1 + 1").node());
 
 			auto outFile = std::ofstream(TEST_PATH + ASM_FILE, std::ios::out);
 			generator.pushCodeToFile(outFile);
 			outFile.close();
 
 			auto inFile = std::ifstream(TEST_PATH + ASM_FILE);
-			std::string line;
-			std::getline(inFile, line);
-			Assert::IsTrue(line == ".code", L".data");
-
-			std::getline(inFile, line);
-			Assert::IsTrue(line == "start:");
-
-			std::getline(inFile, line);
-			Assert::IsTrue(line == "mov eax, 1");
-
-			std::getline(inFile, line);
-			Assert::IsTrue(line == "mov ecx, 1");
-
-			std::getline(inFile, line);
-			Assert::IsTrue(line == "add eax, ecx");
-
-			std::getline(inFile, line);
-			Assert::IsTrue(line == "mov i, eax");
-			
-			std::getline(inFile, line);
-			Assert::IsTrue(line == "end start");
+			checkLine(inFile, ".code", L".data");
+			checkLine(inFile, "start:", L"start:");
+			checkLine(inFile, "mov eax, 1", L"mov eax, 1");
+			checkLine(inFile, "mov ecx, 1", L"mov ecx, 1");
+			checkLine(inFile, "add eax, ecx", L"add eax, ecx");
+			checkLine(inFile, "mov i, eax", L"mov i, eax");
+			checkLine(inFile, "end start", L"end start");
 		 }
 
-		TEST_METHOD(TestGenerator_PushCodeToFile_3)
+		TEST_METHOD(TestGenerator_PushCodeToFile_Div)
 		{
-			auto node = Parser("int i = 2 * 3").node();
-			auto generator = Generator(node);
+			auto generator = Generator(Parser("int i = 10 / 2").node());
 
 			auto outFile = std::ofstream(TEST_PATH + ASM_FILE, std::ios::out);
 			generator.pushCodeToFile(outFile);
 			outFile.close();
 
 			auto inFile = std::ifstream(TEST_PATH + ASM_FILE);
-			std::string line;
-
-			std::getline(inFile, line);
-			Assert::IsTrue(line == ".code", L".data");
-
-			std::getline(inFile, line);
-			Assert::IsTrue(line == "start:");
-
-			std::getline(inFile, line);
-			Assert::IsTrue(line == "mov eax, 2", L"mov eax, 2");
-
-			std::getline(inFile, line);
-			Assert::IsTrue(line == "mov ecx, 3", L"mov ecx, 3");
-
-			std::getline(inFile, line);
-			Assert::IsTrue(line == "imul eax, ecx", L"imul eax, ecx");
-
-			std::getline(inFile, line);
-			Assert::IsTrue(line == "mov i, eax");
-
-			std::getline(inFile, line);
-			Assert::IsTrue(line == "end start");
+			checkLine(inFile, ".code",			L".code");
+			checkLine(inFile, "start:",			L"start:");
+			checkLine(inFile, "mov eax, 10",	L"mov eax, 10");
+			checkLine(inFile, "mov ecx, 2",		L"mov ecx, 2");
+			checkLine(inFile, "cdq",			L"cdq");
+			checkLine(inFile, "idiv ecx",		L"idiv ecx");
 		}
 
-		TEST_METHOD(TestGenerator_PushCodeToFile_4)
+		TEST_METHOD(TestGenerator_PushCodeToFile_mix)
 		{
-			auto node = Parser("int i = (11 + 5) * 2;").node();
-			auto generator = Generator(node);
+			auto generator = Generator(Parser("int i = (11 - 5) * 2;").node());
 
 			auto outFile = std::ofstream(TEST_PATH + ASM_FILE, std::ios::out);
 			generator.pushCodeToFile(outFile);
 			outFile.close();
 
 			auto inFile = std::ifstream(TEST_PATH + ASM_FILE);
-			std::string line;
-
-			std::getline(inFile, line);
-			Assert::IsTrue(line == ".code", L".data");
-
-			std::getline(inFile, line);
-			Assert::IsTrue(line == "start:");
-
-			std::getline(inFile, line);
-			Assert::IsTrue(line == "mov eax, 11");
-
-			std::getline(inFile, line);
-			Assert::IsTrue(line == "mov ecx, 5");
-
-			std::getline(inFile, line);
-			Assert::IsTrue(line == "add eax, ecx");
-
-			std::getline(inFile, line);
-			Assert::IsTrue(line == "mov ecx, 2");
-
-			std::getline(inFile, line);
-			Assert::IsTrue(line == "imul eax, ecx");
-
-			std::getline(inFile, line);
-			Assert::IsTrue(line == "mov i, eax");
-
-			std::getline(inFile, line);
-			Assert::IsTrue(line == "end start");
-
+			checkLine(inFile, ".code", L".data");
+			checkLine(inFile, "start:", L"start");
+			checkLine(inFile, "mov eax, 11", L"mov eax, 11");
+			checkLine(inFile, "mov ecx, 5", L"mov ecx, 5");
+			checkLine(inFile, "sub eax, ecx", L"sub eax, ecx");
+			checkLine(inFile, "mov ecx, 2", L"mov ecx, 2");
+			checkLine(inFile, "imul eax, ecx", L"imul eax, ecx");
+			checkLine(inFile, "mov i, eax", L"mov i, eax");
+			checkLine(inFile, "end start", L"end start");
 		}
 
 		TEST_METHOD(TestGenerator_demo)
