@@ -18,8 +18,6 @@ namespace TestAgumon
 {
 	TEST_CLASS(Test_Generator)
 	{
-
-
 	public:
 
 		class Generator
@@ -36,46 +34,49 @@ namespace TestAgumon
 
 			inline void analyzeAssignNode(AST ast)
 			{
-				if (ast.type() == TokenType::ASSIGN)
+				auto name = ast.childrenList()[1].value();
+				auto token = ast.childrenList()[2].token();
+				addVar(name, token);
+
+				walk(ast.childrenList()[2]);
+
+				statList_.push_back(std::string("mov ") + name + ", eax");
+			}
+
+			inline void walk(AST ast, std::string reg = "eax")
+			{
+				if (ast.type() == TokenType::INTEGER)
 				{
-					auto name = ast.childrenList()[1].value();
-					auto token = ast.childrenList()[2].token();
-					addVar(name, token);
-
-					if (token.type() == TokenType::PLUS)
-					{
-						analyzePlusNode(ast.childrenList()[2]);
-					}
-					else if (token.type() == TokenType::MUL)
-					{
-						analyzeMulNode(ast.childrenList()[2]);
-					}
-					else
-					{
-						analyzeTermNode(ast.childrenList()[2]);
-					}
-
-					statList_.push_back(std::string("mov ") + name + ", eax");
-					
+					mov(ast.value(), reg);
 				}
+				else if (ast.type() == TokenType::PLUS)
+				{
+					walk(ast.childrenList()[0], "eax");
+					walk(ast.childrenList()[1], "ecx");
+					add("eax", "ecx");
+				}
+				else if (ast.type() == TokenType::MUL)
+				{
+					walk(ast.childrenList()[0], "eax");
+					walk(ast.childrenList()[1], "ecx");
+					mul("eax", "ecx");
 
+				}
 			}
 
-			inline void analyzePlusNode(AST ast)
+			inline void mov(std::string value, std::string reg)
 			{
-				statList_.push_back(std::string("mov eax, ") + ast.childrenList()[0].value());
-				statList_.push_back(std::string("add eax, ") + ast.childrenList()[1].value());
+				statList_.push_back(std::string("mov " + reg + ", " + value));
 			}
 
-			inline void analyzeMulNode(AST ast)
+			inline void add(std::string lhs, std::string rhs)
 			{
-				statList_.push_back(std::string("mov eax, ") + ast.childrenList()[0].value());
-				statList_.push_back(std::string("imul eax, ") + ast.childrenList()[1].value());
+				statList_.push_back(std::string("add " + lhs + ", " + rhs));
 			}
 
-			inline void analyzeTermNode(AST ast)
+			inline void mul(std::string lhs, std::string rhs)
 			{
-				statList_.push_back(std::string("mov eax, " + ast.value()));
+				statList_.push_back(std::string("imul " + lhs + ", " + rhs));
 			}
 
 			inline void addVar(std::string name, Token token)
@@ -88,6 +89,7 @@ namespace TestAgumon
 				return varList_.find(varName) != varList_.end();
 			}
 
+		public:
 
 
 			inline void pushLine(std::ofstream& outFile, std::vector<std::string> lineList)
@@ -109,8 +111,8 @@ namespace TestAgumon
 				pushCodeToFile(filePath);
 			}
 
-			inline void pushOptionToFile(std::ofstream &outFile) 
-			{ 
+			inline void pushOptionToFile(std::ofstream &outFile)
+			{
 				pushLine(outFile, OPTION);
 			}
 
@@ -135,18 +137,18 @@ namespace TestAgumon
 			inline void pushCodeToFile(std::ofstream &outFile)
 			{
 				pushLine(outFile, CODE_START);
-				pushLine(outFile, statList_);	
+				pushLine(outFile, statList_);
 				pushLine(outFile, CODE_END);
 			}
 
 		private:
-			std::vector<std::string> LINEBREAK		{ "\n" };
-			std::vector<std::string> OPTION			{ ".386", ".model flat, stdcall", "option casemap : none" };
-			std::vector<std::string> INCLUDE		{ "include windows.inc", "include kernel32.inc", "includelib kernel32.lib", 
+			std::vector<std::string> LINEBREAK{ "\n" };
+			std::vector<std::string> OPTION{ ".386", ".model flat, stdcall", "option casemap : none" };
+			std::vector<std::string> INCLUDE{ "include windows.inc", "include kernel32.inc", "includelib kernel32.lib",
 				"include	msvcrt.inc", "includelib msvcrt.lib" };
-			std::vector<std::string> DATA			{ ".data" };
-			std::vector<std::string> CODE_START		{ ".code", "start:" };
-			std::vector<std::string> CODE_END		{ "end start" };
+			std::vector<std::string> DATA{ ".data" };
+			std::vector<std::string> CODE_START{ ".code", "start:" };
+			std::vector<std::string> CODE_END{ "end start" };
 
 		private:
 			AST										ast_;
@@ -168,7 +170,7 @@ namespace TestAgumon
 			Assert::IsFalse(generator.findVar("d"), L"find var : d");
 		}
 
-		
+
 		TEST_METHOD(TestGenerator_PushOptionToFile)
 		{
 			auto generator = Generator();
@@ -189,7 +191,7 @@ namespace TestAgumon
 		TEST_METHOD(TestGenerator_PushIncludeToFile)
 		{
 			auto generator = Generator();
-			
+
 			auto outFile = std::ofstream(TEST_PATH + ASM_FILE, std::ios::out);
 			generator.pushIncludeToFile(outFile);
 			outFile.close();
@@ -235,21 +237,21 @@ namespace TestAgumon
 			Assert::IsTrue(line == ".code", L".data");
 
 			std::getline(inFile, line);
-			Assert::IsTrue(line == "start:");
+			Assert::IsTrue(line == "start:", L"start:");
 
 			std::getline(inFile, line);
-			Assert::IsTrue(line == "mov eax, 2");
+			Assert::IsTrue(line == "mov eax, 2", L"mov eax, 2");
 
 			std::getline(inFile, line);
-			Assert::IsTrue(line == "mov i, eax");
+			Assert::IsTrue(line == "mov i, eax", L"mov i, eax");
 
 			std::getline(inFile, line);
-			Assert::IsTrue(line == "end start");
+			Assert::IsTrue(line == "end start", L"end start");
 		}
 
 		TEST_METHOD(TestGenerator_PushCodeToFile_2)
 		{
-			auto node = Parser("int i = 1+1").node();
+			auto node = Parser("int i = 1 + 1").node();
 			auto generator = Generator(node);
 
 			auto outFile = std::ofstream(TEST_PATH + ASM_FILE, std::ios::out);
@@ -266,16 +268,19 @@ namespace TestAgumon
 
 			std::getline(inFile, line);
 			Assert::IsTrue(line == "mov eax, 1");
-			
+
 			std::getline(inFile, line);
-			Assert::IsTrue(line == "add eax, 1");
+			Assert::IsTrue(line == "mov ecx, 1");
+
+			std::getline(inFile, line);
+			Assert::IsTrue(line == "add eax, ecx");
 
 			std::getline(inFile, line);
 			Assert::IsTrue(line == "mov i, eax");
-
+			
 			std::getline(inFile, line);
 			Assert::IsTrue(line == "end start");
-		}
+		 }
 
 		TEST_METHOD(TestGenerator_PushCodeToFile_3)
 		{
@@ -299,7 +304,10 @@ namespace TestAgumon
 			Assert::IsTrue(line == "mov eax, 2", L"mov eax, 2");
 
 			std::getline(inFile, line);
-			Assert::IsTrue(line == "imul eax, 3", L"imul eax, 3");
+			Assert::IsTrue(line == "mov ecx, 3", L"mov ecx, 3");
+
+			std::getline(inFile, line);
+			Assert::IsTrue(line == "imul eax, ecx", L"imul eax, ecx");
 
 			std::getline(inFile, line);
 			Assert::IsTrue(line == "mov i, eax");
@@ -308,11 +316,9 @@ namespace TestAgumon
 			Assert::IsTrue(line == "end start");
 		}
 
-		// int i = (11 - 5) / 2;
-
 		TEST_METHOD(TestGenerator_PushCodeToFile_4)
 		{
-			auto node = Parser("int i = (11 - 5) / 2;").node();
+			auto node = Parser("int i = (11 + 5) * 2;").node();
 			auto generator = Generator(node);
 
 			auto outFile = std::ofstream(TEST_PATH + ASM_FILE, std::ios::out);
@@ -330,6 +336,24 @@ namespace TestAgumon
 
 			std::getline(inFile, line);
 			Assert::IsTrue(line == "mov eax, 11");
+
+			std::getline(inFile, line);
+			Assert::IsTrue(line == "mov ecx, 5");
+
+			std::getline(inFile, line);
+			Assert::IsTrue(line == "add eax, ecx");
+
+			std::getline(inFile, line);
+			Assert::IsTrue(line == "mov ecx, 2");
+
+			std::getline(inFile, line);
+			Assert::IsTrue(line == "imul eax, ecx");
+
+			std::getline(inFile, line);
+			Assert::IsTrue(line == "mov i, eax");
+
+			std::getline(inFile, line);
+			Assert::IsTrue(line == "end start");
 
 		}
 
