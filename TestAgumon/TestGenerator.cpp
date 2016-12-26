@@ -308,6 +308,31 @@ namespace TestAgumon
 			Assert::IsTrue(line == "end start");
 		}
 
+		// int i = (11 - 5) / 2;
+
+		TEST_METHOD(TestGenerator_PushCodeToFile_4)
+		{
+			auto node = Parser("int i = (11 - 5) / 2;").node();
+			auto generator = Generator(node);
+
+			auto outFile = std::ofstream(TEST_PATH + ASM_FILE, std::ios::out);
+			generator.pushCodeToFile(outFile);
+			outFile.close();
+
+			auto inFile = std::ifstream(TEST_PATH + ASM_FILE);
+			std::string line;
+
+			std::getline(inFile, line);
+			Assert::IsTrue(line == ".code", L".data");
+
+			std::getline(inFile, line);
+			Assert::IsTrue(line == "start:");
+
+			std::getline(inFile, line);
+			Assert::IsTrue(line == "mov eax, 11");
+
+		}
+
 		TEST_METHOD(TestGenerator_demo)
 		{
 			auto node = Parser("int i = 2").node();
