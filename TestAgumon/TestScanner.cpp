@@ -137,6 +137,9 @@ namespace TestAgumon
 			scanner = Scanner("print");
 			Assert::IsTrue(scanner.getToken().type() == TokenType::PRINT, L"get token print");
 
+			scanner = Scanner(",");
+			Assert::IsTrue(scanner.getToken().type() == TokenType::COMMA, L"get token comma");
+
 			// skip token
 			scanner = Scanner(" int");
 			Assert::IsTrue(scanner.getToken().type() == TokenType::INT_SIGN, L"skip token space ");
@@ -226,7 +229,6 @@ namespace TestAgumon
 			Assert::IsTrue(tokenList[2].type() == TokenType::ASSIGN, L"assign[2] : =");
 			Assert::IsTrue(tokenList[3].type() == TokenType::INTEGER, L"assign[3] : 0");
 			Assert::IsTrue(tokenList[4].type() == TokenType::SEMICOLON, L"assign[4] : ;");
-
 		}
 	};
 }

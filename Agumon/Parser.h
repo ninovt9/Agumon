@@ -44,6 +44,9 @@ namespace Agumon
 		AST				expNode1();
 		AST				termNode();
 
+
+		AST				expNode11();
+
 	public:
 		bool			isTypeSign();
 		bool			isOperator();
@@ -75,11 +78,6 @@ namespace Agumon
 	inline bool Parser::isEndOfList() 
 	{
 		return iter_ == tokenList_.end(); 
-	}
-
-	inline AST Parser::expNode()
-	{
-		return expNode3();
 	}
 
 	inline Token Parser::getToken()

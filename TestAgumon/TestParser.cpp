@@ -43,6 +43,58 @@ namespace TestAgumon
 			Assert::IsTrue(node.childrenList()[2].type() == TokenType::INTEGER, L"childList[2] type : integer");
 		}
 
+
+
+
+		/* exp */
+
+		TEST_METHOD(TestParser_Exp_Integer)
+		{
+			auto node = Parser("1;").node();
+			Assert::IsTrue(node.type() == TokenType::INTEGER, L"root type : integer");
+		}
+
+		TEST_METHOD(TestParser_Exp_Square)
+		{
+			auto node = Parser("arr[5];").node();
+			Assert::IsTrue(node.type() == TokenType::ARRAY, L"root type : array");
+			Assert::IsTrue(node.childrenList()[0].type() == TokenType::VARIABLE, L"lhs type : varible");
+			Assert::IsTrue(node.childrenList()[1].type() == TokenType::INTEGER, L"rhs type : size(integer)");
+		}
+
+		TEST_METHOD(TestParser_Exp_Par)
+		{
+			auto node = Parser("func();").node();
+			Assert::IsTrue(node.type() == TokenType::FUNCTION, L"root type : function");
+			Assert::IsTrue(node.childrenList()[0].type() == TokenType::VARIABLE, L"lhs type : varible");
+
+			node = Parser("func(1);").node();
+			Assert::IsTrue(node.childrenList()[1].type() == TokenType::INTEGER, L"parameter type : integer");
+
+			/*node = Parser("func(1, 2);").node();
+			Assert::IsTrue(node.childrenList()[2].type() == TokenType::INTEGER, L"parameter_2 type : integer");*/
+		}
+
+
+
+		// 最低一级
+		TEST_METHOD(TestParser_Exp)
+		{
+			auto node = Parser("1, 2").node();
+			Assert::IsTrue(node.type() == TokenType::COMMA, L"root type : comma");
+			Assert::IsTrue(node.childrenList()[0].type() == TokenType::INTEGER, L"first element type : integer");
+			Assert::IsTrue(node.childrenList()[1].type() == TokenType::INTEGER, L"second element type : integer");
+
+			node = Parser("1, 2, 3").node();
+			Assert::IsTrue(node.childrenList()[2].type() == TokenType::INTEGER, L"third element type : integer");
+
+			
+		}
+
+
+
+
+
 		TEST_METHOD(TestParser_MinusExp)
 		{
 			Parser parser = Parser("1-2;");
@@ -106,14 +158,16 @@ namespace TestAgumon
 			Assert::IsTrue(node.type() == TokenType::LESS_THAN_OR_EQUAL, L"root type : less than or equal");
 		}
 
-		TEST_METHOD(TestParser_Array)
+		TEST_METHOD(TestParser_AssignStatAndExp)
 		{
-			// int arr[5], 暂时没想到好办法，先定义成变量，size放到子节点
+			auto node = Parser("int i = 1 + 1;").node();
+			Assert::IsTrue(node.type() == TokenType::ASSIGN, L"root type : assign sign");
 
-			auto node = Parser("arr[5];").node();
-			Assert::IsTrue(node.type() == TokenType::VARIABLE, L"root type : array -> variable");
-			Assert::IsTrue(node.childrenList()[0].type() == TokenType::INTEGER, L"child[0] type : integer(size)");
+			node = node.childrenList()[2];
+			Assert::IsTrue(node.type() == TokenType::PLUS, L"rhs type : plus");
 		}
+
+
 
 		TEST_METHOD(TestParser_Point)
 		{
@@ -128,14 +182,17 @@ namespace TestAgumon
 			Assert::IsTrue(node.type() == TokenType::POINT_TO_STRUCT, L"root type : point to struct");
 		}
 
-		TEST_METHOD(TestParser_AssignStatAndExp)
+		TEST_METHOD(TestParser_AssignStatAndVaribale)
 		{
-			auto node = Parser("int i = 1 + 1;").node();
-			Assert::IsTrue(node.type() == TokenType::ASSIGN, L"root type : assign sign");
+			auto node = Parser("int i = j;").node();
+			Assert::IsTrue(node.childrenList()[2].type() == TokenType::VARIABLE, L"rhs type : varible");
 
-			node = node.childrenList()[2];
-			Assert::IsTrue(node.type() == TokenType::PLUS, L"rhs type : plus");
+			node = Parser("int i = j + k;").node();
+			Assert::IsTrue(node.childrenList()[2].type() == TokenType::PLUS, L"rhs type : plus");
+
 		}
+
+
 	};
 
 }
