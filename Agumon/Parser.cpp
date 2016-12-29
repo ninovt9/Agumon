@@ -40,10 +40,20 @@ AST Parser::expNode()
 AST	Parser::expNode11()
 {
 	auto first = expNode3();
-	if (skipToken(TokenType::COMMA))
+
+	if (peekToken().type() == TokenType::COMMA)
 	{
-		auto second = expNode11();
-		return AST(Token(TokenType::COMMA), { first, second });
+		std::vector<AST> childList;
+
+		childList.push_back(first);
+
+		while (skipToken(TokenType::COMMA))
+		{
+			auto element = termNode();
+			childList.push_back(element);
+		}
+
+		return AST(Token(TokenType::COMMA), childList);
 	}
 	else
 	{
@@ -104,7 +114,13 @@ AST Parser::expNode1()
 	}
 	else if (skipToken(TokenType::LEFT_PAR))
 	{
-		auto parameter = expNode1();
+		auto parameter = expNode11();
+
+		if (parameter.type() != TokenType::COMMA)
+		{
+			parameter = AST(TokenType::COMMA, { parameter });
+		}
+
 		skipToken(TokenType::RIGHT_SQUARE_BAR);
 		return AST(Token(TokenType::FUNCTION), { lhs, parameter });
 	}
@@ -125,12 +141,6 @@ AST Parser::termNode()
 	else if (peekToken().type() == TokenType::VARIABLE)
 	{
 		auto var = getToken();
-		//if (skipToken(TokenType::LEFT_SQUARE_BRA))
-		//{
-		//	auto size = expNode2();		
-		//	skipToken(TokenType::RIGHT_SQUARE_BAR);
-		//	return AST(Token(TokenType::ARRAY), { AST(var), AST(size) });
-		//}
 		if (skipToken(TokenType::POINT))
 		{
 			auto member = expNode2();

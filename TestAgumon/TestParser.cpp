@@ -69,16 +69,18 @@ namespace TestAgumon
 			Assert::IsTrue(node.childrenList()[0].type() == TokenType::VARIABLE, L"lhs type : varible");
 
 			node = Parser("func(1);").node();
-			Assert::IsTrue(node.childrenList()[1].type() == TokenType::INTEGER, L"parameter type : integer");
+			Assert::IsTrue(node.childrenList()[1].type() == TokenType::COMMA, L"parameter type : comma");
 
-			/*node = Parser("func(1, 2);").node();
-			Assert::IsTrue(node.childrenList()[2].type() == TokenType::INTEGER, L"parameter_2 type : integer");*/
+			node = Parser("func(1, 2);").node();
+			auto parameter = node.childrenList()[1];
+			Assert::IsTrue(parameter.childrenList()[0].type() == TokenType::INTEGER, L"parameter_1 type : integer");
+			Assert::IsTrue(parameter.childrenList()[1].type() == TokenType::INTEGER, L"parameter_2 type : integer");
 		}
 
 
 
 		// ×îµÍÒ»¼¶
-		TEST_METHOD(TestParser_Exp)
+		TEST_METHOD(TestParser_Exp_Comma)
 		{
 			auto node = Parser("1, 2").node();
 			Assert::IsTrue(node.type() == TokenType::COMMA, L"root type : comma");
